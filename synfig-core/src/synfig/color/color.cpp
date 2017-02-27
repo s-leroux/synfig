@@ -239,8 +239,8 @@ Color::blend(Color a, Color b,float amount, Color::BlendMethod type)
 		blendfunc_ALPHA_OVER<Color>,
 		blendfunc_OVERLAY<Color>,		// 20
 		blendfunc_STRAIGHT_ONTO<Color>,
+		blendfunc_REVEAL<Color>,
 	};
 
 	return vtable[type](a,b,amount);
 }
-

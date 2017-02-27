@@ -119,10 +119,10 @@ CairoColor::blend(CairoColor a, CairoColor b, float amount, Color::BlendMethod t
 		blendfunc_ALPHA_OVER<CairoColor>,
 		blendfunc_OVERLAY<CairoColor>,		// 20
 		blendfunc_STRAIGHT_ONTO<CairoColor>,
+		blendfunc_REVEAL<CairoColor>,
 	};
 
 	return vtable[type](a,b,amount);
 }
 
 } // synfig namespace
-

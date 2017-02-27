@@ -79,6 +79,7 @@ ParamDesc::ParamDesc(const ValueBase&, const String &a):
 		.add_enum_value(Color::BLEND_OVERLAY,        "overlay",      _("Overlay"))
 		.add_enum_value(Color::BLEND_HARD_LIGHT,     "hard_light",   _("Hard Light"))
 		.add_enum_value(Color::BLEND_MULTIPLY,       "multiply",     _("Multiply"))
+		.add_enum_value(Color::BLEND_REVEAL,         "reveal",       _("Reveal"))
 		.add_enum_value(Color::BLEND_DIVIDE,         "divide",       _("Divide"))
 		.add_enum_value(Color::BLEND_ADD,            "add",          _("Add"))
 		.add_enum_value(Color::BLEND_SUBTRACT,       "subtract",     _("Subtract"))
