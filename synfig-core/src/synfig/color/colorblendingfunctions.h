@@ -211,6 +211,18 @@ C blendfunc_MULTIPLY(C &a,C &b,float amount)
 }
 
 template <class C>
+C blendfunc_REVEAL(C &a,C &b,float amount)
+{
+  std::cout << amount << ' ' << a.get_a() << ' ' << b.get_a() << std::endl;
+
+	const float one(C::ceil);
+  // float opacity((one-a.get_a()*amount)*(one-b.get_a())/one);
+
+  b.set_a(one/*-opacity*/);
+  return blendfunc_MULTIPLY(a, b, amount);
+}
+
+template <class C>
 C blendfunc_DIVIDE(C &a,C &b,float amount)
 {
 	amount*=a.get_a();
@@ -359,4 +371,3 @@ C blendfunc_ALPHA_OVER(C &a,C &b,float amount)
 
 
 #endif // __SYNFIG_COLOR_COLORBLENDINGFUNCTIONS_H
-

@@ -278,6 +278,7 @@ public:
 		BLEND_OVERLAY=20,			//!< \writeme
 		BLEND_HARD_LIGHT=17,		//!< \writeme
 		BLEND_MULTIPLY=6,			//!< Simple A*B.
+		BLEND_REVEAL=22,			//!< Like BLEND_MULTIPLY, but reset alpha
 		BLEND_DIVIDE=7,				//!< Simple B/A
 		BLEND_ADD=4,				//!< Simple A+B.
 		BLEND_SUBTRACT=5,			//!< Simple A-B.
@@ -293,7 +294,7 @@ public:
 		BLEND_ALPHA_DARKEN=15,		//!< \deprecated If A is more opaque than B, use B
 		BLEND_ALPHA_OVER=19,		//!< \deprecated multiply alphas and then straight blends using the amount
 
-		BLEND_END=22,				//!< \internal
+		BLEND_END=23,				//!< \internal
 		BLEND_BY_LAYER=999			//! Used to let the layer decides what Blend Method use by
 									//! default when the layer is created
 	};
@@ -369,4 +370,3 @@ public:
 #include "color.hpp"
 
 #endif // __SYNFIG_COLOR_COLOR_H
-

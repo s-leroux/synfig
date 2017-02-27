@@ -314,6 +314,18 @@ blendfunc_MULTIPLY(CairoColor &a,CairoColor &b, float amount)
 	return b;
 }
 
+
+template <>
+CairoColor blendfunc_REVEAL(CairoColor &a, CairoColor &b, float amount)
+{
+	const float one(255.0);
+
+  b.set_a(one);
+  blendfunc_MULTIPLY(a, b, amount);
+
+  return b;
+}
+
 template <>
 CairoColor
 blendfunc_DIVIDE(CairoColor &a, CairoColor &b, float amount)
@@ -557,4 +569,3 @@ blendfunc_ALPHA_OVER(CairoColor &a, CairoColor &b, float amount)
 
 
 #endif // __SYNFIG_COLOR_CAIROCOLORBLENDINGFUNCTIONS_H
-
