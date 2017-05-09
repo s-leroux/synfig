@@ -33,11 +33,12 @@
 
 #include <synfig/general.h>
 #include <ETL/clock>
+#include <ETL/misc>
 
 #include "widgets/widget_sound.h"
 #include "audiocontainer.h"
 
-#include <synfig/localization.h>
+#include <gui/localization.h>
 
 #endif
 

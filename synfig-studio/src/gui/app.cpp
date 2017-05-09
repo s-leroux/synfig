@@ -62,6 +62,7 @@
 #include <glibmm/miscutils.h>
 #include <glibmm/spawn.h>
 #include <glibmm/thread.h>
+#include <glibmm/timer.h>
 
 #include <gtk/gtk.h>
 #include <gdk/gdk.h>
@@ -148,7 +149,7 @@
 #include <fmod.h>
 #endif
 
-#include <synfig/localization.h>
+#include <gui/localization.h>
 
 #endif
 
@@ -896,6 +897,8 @@ init_ui_manager()
 #define DEFINE_ACTION(x,stock) { Glib::RefPtr<Gtk::Action> action( Gtk::Action::create(x, stock) ); actions_action_group->add(action); }
 
 // actions in File menu
+DEFINE_ACTION("new", Gtk::StockID("synfig-new"));
+DEFINE_ACTION("open", Gtk::StockID("synfig-open"));
 DEFINE_ACTION("save", Gtk::StockID("synfig-save"));
 DEFINE_ACTION("save-as", Gtk::StockID("synfig-save_as"));
 DEFINE_ACTION("save-all", Gtk::StockID("synfig-save_all"));
@@ -1980,7 +1983,7 @@ App::load_file_window_size()
 				std::string recent_file;
 				std::string recent_file_window_size;
 				getline(file,recent_file);
-				if(!recent_file.empty() && std::ifstream(recent_file.c_str()))
+				if(!recent_file.empty() && FileSystemNative::instance()->is_file(recent_file))
 					add_recent_file(recent_file);
 			}
 		}
@@ -3871,5 +3874,16 @@ studio::App::setup_changed()
 			{
 				(*citer)->signal_rend_desc_changed()();
 			}
+	}
+}
+
+void
+studio::App::process_all_events()
+{
+	Glib::usleep(1);
+	while(studio::App::events_pending()) {
+		while(studio::App::events_pending())
+			studio::App::iteration(false);
+		Glib::usleep(1);
 	}
 }
