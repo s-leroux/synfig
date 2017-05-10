@@ -29,7 +29,7 @@
 
 #include "action.h"
 #include <sigc++/signal.h>
-#include <sigc++/object.h>
+#include <sigc++/sigc++.h>
 #include <ETL/handle>
 #include <synfig/canvas.h>
 #include "uimanager.h"

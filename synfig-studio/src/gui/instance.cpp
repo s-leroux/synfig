@@ -54,8 +54,8 @@
 
 #include "autorecover.h"
 #include <sigc++/retype_return.h>
-#include <sigc++/retype.h>
-//#include <sigc++/hide.h>
+#include <sigc++/adaptors/retype.h>
+//#include <sigc++/adaptors/hide.h>
 #include <synfig/valuenodes/valuenode_composite.h>
 #include <synfig/valuenodes/valuenode_duplicate.h>
 #include "widgets/widget_waypointmodel.h"

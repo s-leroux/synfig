@@ -36,7 +36,7 @@
 #include <list>
 #include <set>
 #include <sigc++/signal.h>
-#include <sigc++/object.h>
+#include <sigc++/sigc++.h>
 #include "action_system.h"
 #include "selectionmanager.h"
 #include "cvs.h"

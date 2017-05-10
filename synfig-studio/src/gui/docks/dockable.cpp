@@ -30,7 +30,7 @@
 #endif
 
 #include "app.h"
-#include <sigc++/hide.h>
+#include <sigc++/adaptors/hide.h>
 
 #include "docks/dockable.h"
 #include "docks/dockmanager.h"

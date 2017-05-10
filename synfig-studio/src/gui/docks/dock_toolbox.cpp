@@ -38,10 +38,10 @@
 #include <gtkmm/accelmap.h>
 
 #include <sigc++/signal.h>
-#include <sigc++/hide.h>
+#include <sigc++/adaptors/hide.h>
 #include <sigc++/slot.h>
 #include <sigc++/retype_return.h>
-#include <sigc++/retype.h>
+#include <sigc++/adaptors/retype.h>
 
 #include "general.h"
 #include <sstream>

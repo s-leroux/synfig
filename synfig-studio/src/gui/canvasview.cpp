@@ -92,8 +92,8 @@
 //#include <synfigapp/action_deletewaypoint.h>
 
 #include <sigc++/retype_return.h>
-#include <sigc++/retype.h>
-//#include <sigc++/hide.h>
+#include <sigc++/adaptors/retype.h>
+//#include <sigc++/adaptors/hide.h>
 
 #include "canvasview.h"
 #include "instance.h"

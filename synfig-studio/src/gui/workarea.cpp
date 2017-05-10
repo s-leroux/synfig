@@ -45,8 +45,8 @@
 #include <gtkmm/scrollbar.h>
 #include <cmath>
 #include <sigc++/retype_return.h>
-#include <sigc++/retype.h>
-#include <sigc++/hide.h>
+#include <sigc++/adaptors/retype.h>
+#include <sigc++/adaptors/hide.h>
 #include <ETL/misc>
 
 #include <synfig/target_scanline.h>

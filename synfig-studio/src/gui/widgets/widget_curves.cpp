@@ -38,7 +38,7 @@
 #include <map>
 #include <vector>
 #include <ETL/misc>
-#include <sigc++/object.h>
+#include <sigc++/sigc++.h>
 
 #include "general.h"
 
