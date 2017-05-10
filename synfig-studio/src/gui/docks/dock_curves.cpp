@@ -36,7 +36,7 @@
 #include <cassert>
 #include "instance.h"
 #include <sigc++/signal.h>
-#include <sigc++/hide.h>
+#include <sigc++/adaptors/hide.h>
 #include <sigc++/slot.h>
 #include "canvasview.h"
 #include "trees/layerparamtreestore.h"
