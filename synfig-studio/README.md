@@ -1,8 +1,8 @@
-              synfigstudio -- vector animation studio
-
+synfigstudio -- vector animation studio
+=======================================
 
 About this version
-==================
+------------------
 This version is a *fork* of the original Synfig project mostly aiming
 at reverting the rendered to its legacy (but working) version instead
 of using the "new" Cobra engine which was not usable in production
@@ -10,7 +10,7 @@ at the time of this fork.
 
 
 About synfig
-============
+------------
 synfig is a vector based 2D animation package. It is designed to be
 capable of producing feature-film quality animation. It eliminates the
 need for tweening, preventing the need to hand-draw each frame. synfig
@@ -23,61 +23,61 @@ synfigstudio is the animation studio for synfig and provides the GUI
 interface to create synfig animations which are saved in synfig .sif
 or .sifz format.
 
-Links
+### Links
 
-Web:  	http://synfig.org/
-Wiki:	http://wiki.synfig.org
-Forums:	http://synfig.org/forums
-Proj: 	http://sourceforge.net/projects/synfig/
-Bugs:	http://www.synfig.org/issues/thebuggenie/synfig
-IRC:  	irc://irc.freenode.net/synfig
+* Web:  	http://synfig.org/
+* Wiki:	http://wiki.synfig.org
+* Forums:	http://synfig.org/forums
+* Proj: 	http://sourceforge.net/projects/synfig/
+* Bugs:	http://www.synfig.org/issues/thebuggenie/synfig
+* IRC:  	irc://irc.freenode.net/synfig
 
 
 Please use the IRC channel and the bug tracker to get support and
 report bugs, request features and submit patches.
 
-Copyright
+### Copyright
 
-Copyright 2002 Robert B. Quattlebaum Jr.
-Copyright 2002 Adrian Bentley
-Copyright 2006 Yue Shi Lai
-Copyright 2007-2009 Chris Moore
-Copyright 2007-2009 Paul Wise
-Copyright 2008-2009 Aurore D.
-Copyright 2008-2009 Gerald Young
-Copyright 2008 David Roden
-Copyright 2008 Daniel Hornung
-Copyright 2008-2014 Carlos López González
-Copyright 2008-2009 Gerco Ballintijn
-Copyright 2009-2015 Konstantin Dmitriev
-Copyright 2009 Henrique Lopes Barone
-Copyright 2009 Carlos A. Sosa Navarro
-Copyright 2009 Ray Frederikson
-Copyright 2010-2012 Nikita Kitaev
-Copyright 2010 Brendon Higgins
-Copyright 2011-2014 Diego Barrios
-Copyright 2011-2014 Yu Chen
-Copyright 2012 Bertrand Greorie
-Copyright 2013-2015 Jerome Blanchi
-Copyright 2013-2015 Ivan Mahonin
-Copyright 2015 Denis Zdorovtsov
-Copyright 2011 Ramon Miranda
-Copyright 2015 Evgenij Katunov
+* Copyright 2002 Robert B. Quattlebaum Jr.
+* Copyright 2002 Adrian Bentley
+* Copyright 2006 Yue Shi Lai
+* Copyright 2007-2009 Chris Moore
+* Copyright 2007-2009 Paul Wise
+* Copyright 2008-2009 Aurore D.
+* Copyright 2008-2009 Gerald Young
+* Copyright 2008 David Roden
+* Copyright 2008 Daniel Hornung
+* Copyright 2008-2014 Carlos López González
+* Copyright 2008-2009 Gerco Ballintijn
+* Copyright 2009-2015 Konstantin Dmitriev
+* Copyright 2009 Henrique Lopes Barone
+* Copyright 2009 Carlos A. Sosa Navarro
+* Copyright 2009 Ray Frederikson
+* Copyright 2010-2012 Nikita Kitaev
+* Copyright 2010 Brendon Higgins
+* Copyright 2011-2014 Diego Barrios
+* Copyright 2011-2014 Yu Chen
+* Copyright 2012 Bertrand Greorie
+* Copyright 2013-2015 Jerome Blanchi
+* Copyright 2013-2015 Ivan Mahonin
+* Copyright 2015 Denis Zdorovtsov
+* Copyright 2011 Ramon Miranda
+* Copyright 2015 Evgenij Katunov
 
-Some of the icons are placed in the Public Domain by Chris Norman
-Some of the icons are placed in the Public Domain by Carlos López González
-Some of the icons are placed in the Public Domain by David Rylander
-Some of the icons are placed in the Public Domain by Bertrand Grégoire
-Some of the icons are placed in the Public Domain by Yu Chen
-Some of the artwork is placed in the Public Domain by Franco Iacomella and Carlos López González
+* Some of the icons are placed in the Public Domain by Chris Norman
+* Some of the icons are placed in the Public Domain by Carlos López González
+* Some of the icons are placed in the Public Domain by David Rylander
+* Some of the icons are placed in the Public Domain by Bertrand Grégoire
+* Some of the icons are placed in the Public Domain by Yu Chen
+* Some of the artwork is placed in the Public Domain by Franco Iacomella and Carlos López González
 
 
-Brushpacks
+### Brushpacks
 
 * brushes/CD_concept - Copyright 2011 Ramon Miranda, Creative Commons Attribution 3.0 Unported.
 
 
-Licence
+### Licence
 
 This package is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as
