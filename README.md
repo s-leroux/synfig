@@ -1,0 +1,1 @@
+synfig-studio/README
