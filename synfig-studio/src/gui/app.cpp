@@ -1250,6 +1250,7 @@ DEFINE_ACTION("keyframe-properties","Properties");
 	ACCEL("<Mod1>w",													"<Actions>/action_group_state_manager/state-width"					);
 
 	// everything else
+	ACCEL("<Control>s",													"<Actions>/canvasview/save"				);
 	ACCEL("<Control>a",													"<Actions>/canvasview/select-all-ducks"				);
 	ACCEL("<Control>d",													"<Actions>/canvasview/unselect-all-ducks"				);
 	ACCEL("<Control><Shift>a",											"<Actions>/canvasview/select-all-layers"				);
