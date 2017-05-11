@@ -127,10 +127,13 @@ Action::WaypointSet::perform()
 
 	for(; i != end; ++i)
 	{
-		try { iters.push_back(value_node->find(*i)); }
+		try {
+      iters.push_back(value_node->find(*i));
+    }
 		catch(synfig::Exception::NotFound)
 		{
-			throw Error(_("Unable to find waypoint"));
+      // ignore ?
+			//throw Error(_("Unable to find waypoint"));
 		}
 	}
 

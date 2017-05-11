@@ -36,6 +36,7 @@
 #include <synfig/valuenodes/valuenode_animated.h>
 #include "activepointsetsmart.h"
 #include "waypointsetsmart.h"
+#include "waypointset.h"
 #include <synfigapp/main.h>
 
 #include <synfigapp/general.h>
@@ -336,7 +337,7 @@ Action::KeyframeSet::process_value_desc(const synfigapp::ValueDesc& value_desc)
 			{
 				ValueNode_Animated::Handle value_node_animated(ValueNode_Animated::Handle::cast_dynamic(value_node));
 
-				Action::Handle action(WaypointSetSmart::create());
+				Action::Handle action(Action::create("WaypointSet"));
 
 				action->set_param("canvas",get_canvas());
 				action->set_param("canvas_interface",get_canvas_interface());
