@@ -79,7 +79,7 @@ DockBook::DockBook():
 	deleting_=false;
 
 	DockDropArea *dock_area = manage(new DockDropArea(this));
-	dock_area->show();
+	//dock_area->show(); // XXX Hack to hide the ugly widget. Should fix that instead!
 	set_action_widget(dock_area, Gtk::PACK_END);
 }
 
