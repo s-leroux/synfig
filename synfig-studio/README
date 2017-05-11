@@ -1,11 +1,23 @@
               synfigstudio -- vector animation studio
 
+
+About this version
+==================
+This version is a *fork* of the original Synfig project mostly aiming
+at reverting the rendered to its legacy (but working) version instead
+of using the "new" Cobra engine which was not usable in production
+at the time of this fork.
+
+
+About synfig
+============
 synfig is a vector based 2D animation package. It is designed to be
 capable of producing feature-film quality animation. It eliminates the
 need for tweening, preventing the need to hand-draw each frame. synfig
 features spatial and temporal resolution independence (sharp and smooth
 at any resolution or framerate), high dynamic range images, and a
 flexible plugin system.
+
 
 synfigstudio is the animation studio for synfig and provides the GUI
 interface to create synfig animations which are saved in synfig .sif
