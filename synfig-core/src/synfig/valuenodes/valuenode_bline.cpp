@@ -129,9 +129,9 @@ synfig::convert_bline_to_segment_list(const ValueBase& bline)
 		ret.push_back(
 			Segment(
 				prev.get_vertex(),
-				prev.get_tangent2(),
+				prev.get_scaled_tangent2(),
 				iter->get_vertex(),
-				iter->get_tangent1()
+				iter->get_scaled_tangent1()
 			)
 		);
 		prev=*iter;
@@ -141,9 +141,9 @@ synfig::convert_bline_to_segment_list(const ValueBase& bline)
 		ret.push_back(
 			Segment(
 				prev.get_vertex(),
-				prev.get_tangent2(),
+				prev.get_scaled_tangent2(),
 				first.get_vertex(),
-				first.get_tangent1()
+				first.get_scaled_tangent1()
 			)
 		);
 	}

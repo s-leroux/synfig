@@ -229,14 +229,14 @@ Outline::sync()
 	// looped		nth		1st
 	// !looped		1st		2nd
 
-	Vector first_tangent=bline.front().get_tangent2();
-	Vector last_tangent=iter->get_tangent1();
+	Vector first_tangent=bline.front().get_scaled_tangent2();
+	Vector last_tangent=iter->get_scaled_tangent1();
 	// Retrieve the parent canvas grow value
 	Real gv(exp(get_parent_canvas_grow_value()));
 	// if we are looped and drawing sharp cusps, we'll need a value for the incoming tangent
 	if (loop && sharp_cusps && last_tangent.is_equal_to(Vector::zero()))
 	{
-		hermite<Vector> curve((iter-1)->get_vertex(), iter->get_vertex(), (iter-1)->get_tangent2(), iter->get_tangent1());
+		hermite<Vector> curve((iter-1)->get_vertex(), iter->get_vertex(), (iter-1)->get_scaled_tangent2(), iter->get_scaled_tangent1());
 		const derivative< hermite<Vector> > deriv(curve);
 		last_tangent=deriv(1.0-CUSP_TANGENT_ADJUST);
 	}
@@ -244,9 +244,9 @@ Outline::sync()
 	// `first' is for making the cusps; don't do that for the first point if we're not looped
 	for(bool first=!loop; next!=end; iter=next++)
 	{
-		Vector prev_t(iter->get_tangent1());
-		Vector iter_t(iter->get_tangent2());
-		Vector next_t(next->get_tangent1());
+		Vector prev_t(iter->get_scaled_tangent1());
+		Vector iter_t(iter->get_scaled_tangent2());
+		Vector next_t(next->get_scaled_tangent1());
 
 		bool split_flag(iter->get_split_tangent_angle() || iter->get_split_tangent_radius());
 

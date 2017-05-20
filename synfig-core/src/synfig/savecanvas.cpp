@@ -230,6 +230,7 @@ xmlpp::Element* encode_bline_point(xmlpp::Element* root,BLinePoint bline_point)
 		encode_vector(root->add_child("t2")->add_child("vector"),bline_point.get_tangent2());
 
 	encode_real(root->add_child("width")->add_child("real"),bline_point.get_width());
+	encode_real(root->add_child("scale")->add_child("real"),bline_point.get_tangent_scale());
 	encode_real(root->add_child("origin")->add_child("real"),bline_point.get_origin());
 	return root;
 }

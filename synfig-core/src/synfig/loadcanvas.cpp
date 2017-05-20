@@ -819,6 +819,33 @@ CanvasParser::parse_bline_point(xmlpp::Element *element)
 			ret.set_width(parse_real(dynamic_cast<xmlpp::Element*>(*iter)));
 		}
 		else
+#if 1
+		// scale
+		if(child->get_name()=="scale")
+		{
+			xmlpp::Element::NodeList list = child->get_children();
+			xmlpp::Element::NodeList::iterator iter;
+
+			// Search for the first non-text XML element
+			for(iter = list.begin(); iter != list.end(); ++iter)
+				if(dynamic_cast<xmlpp::Element*>(*iter)) break;
+
+			if(iter==list.end())
+			{
+				error(element, "Undefined value in <scale>");
+				continue;
+			}
+
+			if((*iter)->get_name()!="real")
+			{
+				error_unexpected_element((*iter),(*iter)->get_name(),"real");
+				continue;
+			}
+
+			ret.set_tangent_scale(parse_real(dynamic_cast<xmlpp::Element*>(*iter)));
+		}
+		else
+#endif
 		// origin
 		if(child->get_name()=="origin")
 		{
@@ -2187,7 +2214,15 @@ CanvasParser::parse_linkable_value_node(xmlpp::Element *element,Canvas::Handle c
 				value_node->set_link("split_angle", value_node->get_link(value_node->get_link_index_from_name("split"))->clone(canvas));
 				continue;
 			}
-
+      
+      // Scale is optional for composite. Will default to 1.0 if not present
+      // XXX Should check the exact composite *type* here
+			if((element->get_name() == "composite") && value_node->link_name(i) =="scale")
+			{
+				value_node->set_link("scale", ValueNode_Const::create(Real(1.0)));
+				continue;
+			}
+      
 			error(element, strprintf(_("<%s> is missing link %d (%s)"),
 									 element->get_name().c_str(),
 									 i,
@@ -3576,5 +3611,3 @@ synfig::open_canvas(xmlpp::Element* node,String &errors,String &warnings){
 	}
 	return canvas;
 }
-
-

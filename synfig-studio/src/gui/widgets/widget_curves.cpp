@@ -263,10 +263,10 @@ struct studio::Widget_Curves::CurveStruct : sigc::trackable
 			channels[2].values[time]=value.get(BLinePoint()).get_width();
 			channels[3].values[time]=value.get(BLinePoint()).get_origin();
 			channels[4].values[time]=value.get(BLinePoint()).get_split_tangent_both();
-			channels[5].values[time]=value.get(BLinePoint()).get_tangent1()[0];
-			channels[6].values[time]=value.get(BLinePoint()).get_tangent1()[1];
-			channels[7].values[time]=value.get(BLinePoint()).get_tangent2()[0];
-			channels[8].values[time]=value.get(BLinePoint()).get_tangent2()[1];
+			channels[5].values[time]=value.get(BLinePoint()).get_scaled_tangent1()[0];
+			channels[6].values[time]=value.get(BLinePoint()).get_scaled_tangent1()[1];
+			channels[7].values[time]=value.get(BLinePoint()).get_scaled_tangent2()[0];
+			channels[8].values[time]=value.get(BLinePoint()).get_scaled_tangent2()[1];
 			channels[9].values[time]=value.get(BLinePoint()).get_split_tangent_radius();
 			channels[10].values[time]=value.get(BLinePoint()).get_split_tangent_angle();
 		}

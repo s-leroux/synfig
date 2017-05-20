@@ -508,8 +508,8 @@ Duckmatic::update_ducks()
 							int t2_index=composite->get_link_index_from_name("t2");
 							if(index==t1_index && (*iter)->get_value_desc().get_index()!=t1_index)
 							{
-								bp.set_tangent1(c1->get_point());
-								Vector t2(bp.get_tangent2());
+								bp.set_scaled_tangent1(c1->get_point());
+								Vector t2(bp.get_scaled_tangent2());
 								(*iter)->set_point(Point(t2));
 							}
 							else if(index==t2_index && (*iter)->get_value_desc().get_index()!=t2_index)
@@ -519,13 +519,13 @@ Duckmatic::update_ducks()
 								// Terporary set the flags for the new BLinePoint to all split
 								nbp.set_split_tangent_both(true);
 								// Now we can set the tangents. Tangent2 won't be modified by tangent1
-								nbp.set_tangent1(c1->get_point());
-								nbp.set_tangent2(bp.get_tangent1());
+								nbp.set_scaled_tangent1(c1->get_point());
+								nbp.set_scaled_tangent2(bp.get_scaled_tangent1());
 								// Now update the flags
 								nbp.set_split_tangent_radius(bp.get_split_tangent_radius());
 								nbp.set_split_tangent_angle(bp.get_split_tangent_angle());
 								// Now retrieve the updated tangent2 (which will be stored as t1, see below)
-								Vector t1(nbp.get_tangent2());
+								Vector t1(nbp.get_scaled_tangent2());
 								(*iter)->set_point(Point(t1));
 							}
 						}
@@ -557,8 +557,8 @@ Duckmatic::update_ducks()
 							int t2_index=composite->get_link_index_from_name("t2");
 							if(index==t1_index && (*iter)->get_value_desc().get_index()!=t1_index)
 							{
-								bp.set_tangent1(c2->get_point());
-								Vector t2(bp.get_tangent2());
+								bp.set_scaled_tangent1(c2->get_point());
+								Vector t2(bp.get_scaled_tangent2());
 								(*iter)->set_point(Point(t2));
 							}
 							else if(index==t2_index && (*iter)->get_value_desc().get_index()!=t2_index)
@@ -568,13 +568,13 @@ Duckmatic::update_ducks()
 								// Terporary set the flags for the new BLinePoint to all split
 								nbp.set_split_tangent_both(true);
 								// Now we can set the tangents. Tangent2 won't be modified by tangent1
-								nbp.set_tangent1(c2->get_point());
-								nbp.set_tangent2(bp.get_tangent1());
+								nbp.set_scaled_tangent1(c2->get_point());
+								nbp.set_scaled_tangent2(bp.get_scaled_tangent1());
 								// Now update the flags
 								nbp.set_split_tangent_radius(bp.get_split_tangent_radius());
 								nbp.set_split_tangent_angle(bp.get_split_tangent_angle());
 								// Now retrieve the updated tangent2 (which will be stored as t1, see below)
-								Vector t1(nbp.get_tangent2());
+								Vector t1(nbp.get_scaled_tangent2());
 								(*iter)->set_point(Point(t1));
 							}
 						}
@@ -702,8 +702,8 @@ Duckmatic::update_ducks()
 										int t2_index=composite->get_link_index_from_name("t2");
 										if(index==t1_index && (*iter)->get_value_desc().get_index()!=t1_index)
 										{
-											bp.set_tangent1(duck->get_point());
-											Vector t2(bp.get_tangent2());
+											bp.set_scaled_tangent1(duck->get_point());
+											Vector t2(bp.get_scaled_tangent2());
 											(*iter)->set_point(Point(t2));
 										}
 										else if(index==t2_index && (*iter)->get_value_desc().get_index()!=t2_index)
@@ -713,13 +713,13 @@ Duckmatic::update_ducks()
 											// Terporary set the flags for the new BLinePoint to all split
 											nbp.set_split_tangent_both(true);
 											// Now we can set the tangents. Tangent2 won't be modified by tangent1
-											nbp.set_tangent1(duck->get_point());
-											nbp.set_tangent2(bp.get_tangent1());
+											nbp.set_scaled_tangent1(duck->get_point());
+											nbp.set_scaled_tangent2(bp.get_scaled_tangent1());
 											// Now update the flags
 											nbp.set_split_tangent_radius(bp.get_split_tangent_radius());
 											nbp.set_split_tangent_angle(bp.get_split_tangent_angle());
 											// Now retrieve the updated tangent2 (which will be stored as t1, see below)
-											Vector t1(nbp.get_tangent2());
+											Vector t1(nbp.get_scaled_tangent2());
 											(*iter)->set_point(Point(t1));
 										}
 									}
@@ -1096,23 +1096,23 @@ Duckmatic::on_duck_changed(const studio::Duck &duck,const synfigapp::ValueDesc& 
             break;
         case Duck::TYPE_TANGENT:
             if (duck.get_scalar() < 0.f)
-                point.set_tangent1(duck.get_point());
+                point.set_scaled_tangent1(duck.get_point());
             else
             if (point.get_merge_tangent_both())
-                point.set_tangent1(duck.get_point());
+                point.set_scaled_tangent1(duck.get_point());
             else
             if (point.get_split_tangent_both())
-                point.set_tangent2(duck.get_point());
+                point.set_scaled_tangent2(duck.get_point());
             else
             if (point.get_split_tangent_angle())
             {
-                point.set_tangent1( Point(duck.get_point().mag(), point.get_tangent1().angle()) );
-                point.set_tangent2(duck.get_point());
+                point.set_scaled_tangent1( Point(duck.get_point().mag(), point.get_scaled_tangent1().angle()) );
+                point.set_scaled_tangent2(duck.get_point());
             }
             else
             {
-                point.set_tangent1( Point(point.get_tangent1().mag(), duck.get_point().angle()) );
-                point.set_tangent2(duck.get_point());
+                point.set_scaled_tangent1( Point(point.get_scaled_tangent1().mag(), duck.get_point().angle()) );
+                point.set_scaled_tangent2(duck.get_point());
             }
             break;
         default:
@@ -1833,7 +1833,7 @@ Duckmatic::add_to_ducks(const synfigapp::ValueDesc& value_desc,etl::handle<Canva
                     if(index==value_desc.get_index())
                     {
                         BLinePoint bp=(*blinepoint_value_node)(get_time()).get(BLinePoint());
-                        Vector t2=bp.get_tangent2();
+                        Vector t2=bp.get_scaled_tangent2();
                         duck->set_point(t2);
                         done=true;
                     }
@@ -2168,26 +2168,32 @@ Duckmatic::add_to_ducks(const synfigapp::ValueDesc& value_desc,etl::handle<Canva
 
         etl::handle<Duck> vertex_duck = duck;
 
-        // add tamgent1 duck
-        duck=new Duck();
-        duck->set_type(Duck::TYPE_TANGENT);
-        set_duck_value_desc(*duck, value_desc, "t1", transform_stack);
-        duck->set_point(point.get_tangent1());
-        duck->set_editable(editable);
-        duck->set_origin(vertex_duck);
-        connect_signals(duck, duck->get_value_desc(), *canvas_view);
-        add_duck(duck);
+        // Do *not* show tangent ducks for angular points
+        // (i.e.: magnitude scale is zero)
+        static const float epsilon = 0.00000001f;
+        if (fabs(point.get_tangent_scale()) > epsilon)
+        {
+          // add tangent1 duck
+          duck=new Duck();
+          duck->set_type(Duck::TYPE_TANGENT);
+          set_duck_value_desc(*duck, value_desc, "t1", transform_stack);
+          duck->set_point(point.get_scaled_tangent1());
+          duck->set_editable(editable);
+          duck->set_origin(vertex_duck);
+          connect_signals(duck, duck->get_value_desc(), *canvas_view);
+          add_duck(duck);
 
-        // add tamgent2 duck
-        duck=new Duck();
-        duck->set_type(Duck::TYPE_TANGENT);
-        set_duck_value_desc(*duck, value_desc, "t2", transform_stack);
-        duck->set_point(point.get_tangent2());
-        duck->set_editable(editable);
-        duck->set_origin(vertex_duck);
-        duck->set_scalar(-1);
-        connect_signals(duck, duck->get_value_desc(), *canvas_view);
-        add_duck(duck);
+          // add tamgent2 duck
+          duck=new Duck();
+          duck->set_type(Duck::TYPE_TANGENT);
+          set_duck_value_desc(*duck, value_desc, "t2", transform_stack);
+          duck->set_point(point.get_scaled_tangent2());
+          duck->set_editable(editable);
+          duck->set_origin(vertex_duck);
+          duck->set_scalar(-1);
+          connect_signals(duck, duck->get_value_desc(), *canvas_view);
+          add_duck(duck);
+        }
 
         return true;
     }
@@ -2298,7 +2304,7 @@ Duckmatic::add_to_ducks(const synfigapp::ValueDesc& value_desc,etl::handle<Canva
                 if(bezier)
                 {
                     // Add the tangent1 duck
-                    duck=new Duck(bline_point.get_tangent1());
+                    duck=new Duck(bline_point.get_scaled_tangent1());
                     set_duck_value_desc(*duck, sub_value_desc, "t1", transform_stack);
                     duck->set_editable(editable);
                     duck=add_similar_duck(duck);
@@ -2337,7 +2343,7 @@ Duckmatic::add_to_ducks(const synfigapp::ValueDesc& value_desc,etl::handle<Canva
 
                 // Add the tangent2 duck
                 Duck::Handle tangent2_duck;
-                duck=new Duck(bline_point.get_tangent2());
+                duck=new Duck(bline_point.get_scaled_tangent2());
                 set_duck_value_desc(*duck, sub_value_desc, "t2", transform_stack);
                 duck->set_editable(editable);
 
@@ -2423,7 +2429,7 @@ Duckmatic::add_to_ducks(const synfigapp::ValueDesc& value_desc,etl::handle<Canva
                 synfigapp::ValueDesc sub_value_desc(value_node,first,value_desc);
 
                 // Add the tangent1 duck
-                duck=new Duck(bline_point.get_tangent1());
+                duck=new Duck(bline_point.get_scaled_tangent1());
                 set_duck_value_desc(*duck, sub_value_desc, "t1", transform_stack);
                 duck->set_editable(editable);
 

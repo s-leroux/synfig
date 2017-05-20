@@ -195,9 +195,9 @@ Plant::calc_bounding_rect()const
 	{
 		bounding_rect.expand(iter->get_vertex());
 		bounding_rect.expand(next->get_vertex());
-		bounding_rect.expand(iter->get_vertex()+iter->get_tangent2()*0.3333333333333);
-		bounding_rect.expand(next->get_vertex()-next->get_tangent1()*0.3333333333333);
-		bounding_rect.expand(next->get_vertex()+next->get_tangent2()*velocity);
+		bounding_rect.expand(iter->get_vertex()+iter->get_scaled_tangent2()*0.3333333333333);
+		bounding_rect.expand(next->get_vertex()-next->get_scaled_tangent1()*0.3333333333333);
+		bounding_rect.expand(next->get_vertex()+next->get_scaled_tangent2()*velocity);
 	}
 	bounding_rect.expand_x(gravity[0]);
 	bounding_rect.expand_y(gravity[1]);
@@ -254,9 +254,9 @@ Plant::sync()const
 		float nextw=next->get_width();	// the width value of the next vertex
 		float width;					// the width at an intermediate position
 		curve.p1()=iter->get_vertex();
-		curve.t1()=iter->get_tangent2();
+		curve.t1()=iter->get_scaled_tangent2();
 		curve.p2()=next->get_vertex();
-		curve.t2()=next->get_tangent1();
+		curve.t2()=next->get_scaled_tangent1();
 		curve.sync();
 		etl::derivative<etl::hermite<Vector> > deriv(curve);
 

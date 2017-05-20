@@ -75,7 +75,7 @@ inline float calculate_distance(const std::vector<synfig::BLinePoint>& bline)
 	for(;next!=end;iter=next++)
 	{
 		// Setup the curve
-		etl::hermite<Vector> curve(iter->get_vertex(), next->get_vertex(), iter->get_tangent2(), next->get_tangent1());
+		etl::hermite<Vector> curve(iter->get_vertex(), next->get_vertex(), iter->get_scaled_tangent2(), next->get_scaled_tangent1());
 		dist+=curve.length();
 	}
 
@@ -102,7 +102,7 @@ find_closest_to_bline(bool fast, const std::vector<synfig::BLinePoint>& bline,co
 	for(;next!=end;iter=next++)
 	{
 		// Setup the curve
-		etl::hermite<Vector> curve(iter->get_vertex(), next->get_vertex(), iter->get_tangent2(), next->get_tangent1());
+		etl::hermite<Vector> curve(iter->get_vertex(), next->get_vertex(), iter->get_scaled_tangent2(), next->get_scaled_tangent1());
 		float thisdist(0);
 		last = false;
 
@@ -205,7 +205,7 @@ CurveWarp::transform(const Point &point_, Real *dist, Real *along, int quality)c
 		return Point();
 	else if(bline.size()==1)
 	{
-		tangent=bline.front().get_tangent1();
+		tangent=bline.front().get_scaled_tangent1();
 		p1=bline.front().get_vertex();
 		thickness=bline.front().get_width();
 		t = 0.5;
@@ -224,7 +224,7 @@ CurveWarp::transform(const Point &point_, Real *dist, Real *along, int quality)c
 		if(next==bline.end()) next=bline.begin();
 
 		// Setup the curve
-		etl::hermite<Vector> curve(iter->get_vertex(), next->get_vertex(), iter->get_tangent2(), next->get_tangent1());
+		etl::hermite<Vector> curve(iter->get_vertex(), next->get_vertex(), iter->get_scaled_tangent2(), next->get_scaled_tangent1());
 
 		// Setup the derivative function
 		etl::derivative<etl::hermite<Vector> > deriv(curve);
@@ -260,7 +260,7 @@ CurveWarp::transform(const Point &point_, Real *dist, Real *along, int quality)c
 					if (zero_tangent) tangent = curve(FAKE_TANGENT_STEP) - curve(0);
 
 					// calculate the other tangent
-					Vector other_tangent(iter->get_tangent1());
+					Vector other_tangent(iter->get_scaled_tangent1());
 					if (other_tangent[0] == 0 && other_tangent[1] == 0)
 					{
 						// find the previous blinepoint
@@ -268,7 +268,7 @@ CurveWarp::transform(const Point &point_, Real *dist, Real *along, int quality)c
 						if (iter != bline.begin()) (prev = iter)--;
 						else prev = iter;
 
-						etl::hermite<Vector> other_curve(prev->get_vertex(), iter->get_vertex(), prev->get_tangent2(), iter->get_tangent1());
+						etl::hermite<Vector> other_curve(prev->get_vertex(), iter->get_vertex(), prev->get_scaled_tangent2(), iter->get_scaled_tangent1());
 						other_tangent = other_curve(1) - other_curve(1-FAKE_TANGENT_STEP);
 					}
 
@@ -285,7 +285,7 @@ CurveWarp::transform(const Point &point_, Real *dist, Real *along, int quality)c
 					if (zero_tangent) tangent = curve(1) - curve(1-FAKE_TANGENT_STEP);
 
 					// calculate the other tangent
-					Vector other_tangent(next->get_tangent2());
+					Vector other_tangent(next->get_scaled_tangent2());
 					if (other_tangent[0] == 0 && other_tangent[1] == 0)
 					{
 						// find the next blinepoint
@@ -293,7 +293,7 @@ CurveWarp::transform(const Point &point_, Real *dist, Real *along, int quality)c
 						if (++next2 == bline.end())
 							next2 = next;
 
-						etl::hermite<Vector> other_curve(next->get_vertex(), next2->get_vertex(), next->get_tangent2(), next2->get_tangent1());
+						etl::hermite<Vector> other_curve(next->get_vertex(), next2->get_vertex(), next->get_scaled_tangent2(), next2->get_scaled_tangent1());
 						other_tangent = other_curve(FAKE_TANGENT_STEP) - other_curve(0);
 					}
 
@@ -322,13 +322,13 @@ CurveWarp::transform(const Point &point_, Real *dist, Real *along, int quality)c
 		if (t < 0.5)
 		{
 			std::vector<synfig::BLinePoint>::const_iterator iter(bline.begin());
-			tangent = iter->get_tangent1().norm();
+			tangent = iter->get_scaled_tangent1().norm();
 			len = 0;
 		}
 		else
 		{
 			std::vector<synfig::BLinePoint>::const_iterator iter(--bline.end());
-			tangent = iter->get_tangent2().norm();
+			tangent = iter->get_scaled_tangent2().norm();
 			len = curve_length_;
 		}
 		len += (point_-origin - p1)*tangent;

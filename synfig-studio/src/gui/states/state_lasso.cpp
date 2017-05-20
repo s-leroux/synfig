@@ -1166,7 +1166,7 @@ StateLasso_Context::process_stroke(StrokeData stroke_data, WidthData width_data,
 			   (bline.front().get_vertex() - bline.back().get_vertex()).mag() <= radius)
 		{
 			Real size(Real(bline.size()));
-			tangent=bline.back().get_tangent1();
+			tangent=bline.back().get_scaled_tangent1();
 			width=bline.back().get_width();
 			bline.pop_back();
 			std::list<synfig::WidthPoint>::iterator iter;
@@ -1175,7 +1175,7 @@ StateLasso_Context::process_stroke(StrokeData stroke_data, WidthData width_data,
 					iter->set_position(iter->get_position()+1/(size-1));
 		}
 
-		if(abs(bline.front().get_tangent1().norm()*tangent.norm().perp())>SIMILAR_TANGENT_THRESHOLD)
+		if(abs(bline.front().get_scaled_tangent1().norm()*tangent.norm().perp())>SIMILAR_TANGENT_THRESHOLD)
 		{
 			// If the tangents are not similar, then
 			// split the tangents
@@ -1186,7 +1186,7 @@ StateLasso_Context::process_stroke(StrokeData stroke_data, WidthData width_data,
 		{
 			// If the tangents are similar, then set the tangent
 			// to the average of the two
-			bline.front().set_tangent((tangent+bline.front().get_tangent1())*0.5f);
+			bline.front().set_tangent((tangent+bline.front().get_scaled_tangent1())*0.5f);
 		}
 
 		// Add the widths of the two points
@@ -1367,13 +1367,13 @@ StateLasso_Context::new_bline(std::list<synfig::BLinePoint> bline,std::list<synf
 
 			bline_point.set_tangent1(
 				transform.unperform(
-					bline_point.get_tangent1()+bline_point.get_vertex()
+					bline_point.get_scaled_tangent1()+bline_point.get_vertex()
 				) -new_vertex
 			);
 
 			bline_point.set_tangent2(
 				transform.unperform(
-					bline_point.get_tangent2()+bline_point.get_vertex()
+					bline_point.get_scaled_tangent2()+bline_point.get_vertex()
 				) -new_vertex
 			);
 

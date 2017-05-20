@@ -271,12 +271,12 @@ Advanced_Outline::sync()
 		else
 			biter=bnext++;
 		// Let's give to last tangent an initial value.
-		last_tangent=biter->get_tangent1();
+		last_tangent=biter->get_scaled_tangent1();
 		// if we are looped and drawing sharp cusps and the last tangent is zero,
 		// we'll need a value for the incoming tangent
 		if (blineloop && cusp_type_==TYPE_SHARP && last_tangent.is_equal_to(Vector::zero()))
 		{
-			hermite<Vector> curve((biter-1)->get_vertex(), biter->get_vertex(), (biter-1)->get_tangent2(), biter->get_tangent1());
+			hermite<Vector> curve((biter-1)->get_vertex(), biter->get_vertex(), (biter-1)->get_scaled_tangent2(), biter->get_scaled_tangent1());
 			const derivative< hermite<Vector> > deriv(curve);
 			last_tangent=deriv(1.0-CUSP_TANGENT_ADJUST);
 		}
@@ -675,11 +675,11 @@ Advanced_Outline::sync()
 		}
 		do ///////////////////////// Main loop
 		{
-			Vector iter_t(biter->get_tangent2());
-			Vector next_t(bnext->get_tangent1());
+			Vector iter_t(biter->get_scaled_tangent2());
+			Vector next_t(bnext->get_scaled_tangent1());
 			Real iter_t_mag(iter_t.mag());
 			Real next_t_mag(next_t.mag());
-			bool split_flag(biter->get_split_tangent_angle() || biter->get_tangent1().mag()==0 || biter->get_tangent2().mag()==0);
+			bool split_flag(biter->get_split_tangent_angle() || biter->get_scaled_tangent1().mag()==0 || biter->get_scaled_tangent2().mag()==0);
 			// Setup the bezier curve
 			hermite<Vector> curve(
 				biter->get_vertex(),
@@ -765,7 +765,7 @@ Advanced_Outline::sync()
 					scwnext=scwplist.begin();
 					scwiter=--scwplist.end();
 					// if we are doing looped blines and it is tangent split or one of its tangents is zero
-					if(blineloop && (bnext->get_split_tangent_angle()|| bnext->get_tangent1().mag()==0.0 || bnext->get_tangent2().mag()==0.0))
+					if(blineloop && (bnext->get_split_tangent_angle()|| bnext->get_scaled_tangent1().mag()==0.0 || bnext->get_scaled_tangent2().mag()==0.0))
 					{
 						vector<WidthPoint>::iterator first(wplist.begin());
 						vector<WidthPoint>::iterator last(--wplist.end());

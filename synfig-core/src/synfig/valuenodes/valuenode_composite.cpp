@@ -100,6 +100,7 @@ synfig::ValueNode_Composite::ValueNode_Composite(const ValueBase &value, Canvas:
 		set_link("split_angle",ValueNode_Const::create(bline_point.get_split_tangent_angle()));
 		set_link("t1",ValueNode_RadialComposite::create(bline_point.get_tangent1()));
 		set_link("t2",ValueNode_RadialComposite::create(bline_point.get_tangent2()));
+		set_link("scale",ValueNode_Const::create(bline_point.get_tangent_scale()));
 	}
 	else
 	if (type == type_width_point)
@@ -226,9 +227,10 @@ synfig::ValueNode_Composite::operator()(Time t)const
 	if (type == type_bline_point)
 	{
 		BLinePoint ret;
-		assert(components[0] && components[1] && components[2] && components[3] && components[4] && components[5] && components[6] && components[7]);
+		assert(components[0] && components[1] && components[2] && components[3] && components[4] && components[5] && components[6] && components[7] && components[8]);
 		ret.set_vertex((*components[0])(t).get(Point()));
 		ret.set_width((*components[1])(t).get(Real()));
+		ret.set_tangent_scale((*components[8])(t).get(Real()));
 		ret.set_origin((*components[2])(t).get(Real()));
 		ret.set_split_tangent_both((*components[3])(t).get(bool()));
 		ret.set_split_tangent_radius((*components[6])(t).get(bool()));
@@ -344,7 +346,7 @@ ValueNode_Composite::set_link_vfunc(int i,ValueNode::Handle x)
 			components[i]=x;
 			return true;
 		}
-		if((i==1 || i==2) && x->get_type()==ValueBase(Real()).get_type())
+		if((i==1 || i==2 || i==8) && x->get_type()==ValueBase(Real()).get_type())
 		{
 			components[i]=x;
 			return true;
@@ -527,6 +529,8 @@ ValueNode_Composite::get_link_index_from_name(const String &name)const
 			return 6;
 		if(name=="split_angle")
 			return 7;
+		if(name=="scale")
+			return 8;
 	}
 	else
 	if (type == type_width_point)
@@ -712,6 +716,10 @@ ValueNode_Composite::get_children_vocab_vfunc()const
 		ret.push_back(ParamDesc(ValueBase(),"split_angle")
 			.set_local_name(_("Angle Split"))
 			.set_description(_("When checked, tangent's angles are independent"))
+		);
+		ret.push_back(ParamDesc(ValueBase(),"scale")
+			.set_local_name(_("Scale"))
+			.set_description(_("Scale factor applied to magnitude of both tangents"))
 		);
 		return ret;
 	}

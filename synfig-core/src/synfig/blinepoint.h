@@ -50,6 +50,11 @@ private:
 	bool	split_tangent_angle_;
 	bool	boned_vertex_;
 	Point	vertex_setup_;
+  
+  //! Scale factor applied to both tangent magnitude
+  float scale_;
+  
+  static constexpr float epsilon = 0.00000001f;
 
 	// True if split_tangent_radius == split_tangent_angle == true otherwise false
 	bool	split_tangent_both_;
@@ -73,7 +78,8 @@ public:
 		split_tangent_radius_(true),
 		split_tangent_angle_(false),
 		boned_vertex_(false),
-		vertex_setup_(vertex_)
+		vertex_setup_(vertex_),
+    scale_(1.0)
 	{
 		tangent_[0] = Point(0,0);
 		tangent_[1] = Point(0,0);
@@ -94,9 +100,21 @@ public:
 			return tangent2_radius_split_;
 		return tangent2_angle_split_;
 	}
+  
+  Vector get_scaled_tangent1() const { return get_tangent1()*scale_; }
+  Vector get_scaled_tangent2() const { return get_tangent2()*scale_; }
+  
 	void set_tangent(const Vector& x) { tangent_[0]=tangent_[1]=x; update_tangent2(); }
 	void set_tangent1(const Vector& x) { tangent_[0]=x; update_tangent2(); }
 	void set_tangent2(const Vector& x) { tangent_[1]=x; update_tangent2(); }
+  
+  /* if the magnitude scale is zero, set_scaled_tangent are noop */
+	void set_scaled_tangent(const Vector& x) { if (fabs(scale_)>epsilon) { tangent_[0]=tangent_[1]=x/scale_; update_tangent2(); }}
+	void set_scaled_tangent1(const Vector& x) { if (fabs(scale_)>epsilon) { tangent_[0]=x/scale_; update_tangent2(); }}
+	void set_scaled_tangent2(const Vector& x) { if (fabs(scale_)>epsilon) { tangent_[1]=x/scale_; update_tangent2(); }}
+
+	const float& get_tangent_scale()const { return scale_; }
+	void set_tangent_scale(float x) { scale_=x; }
 
 	const float& get_width()const { return width_; }
 	void set_width(float x) { width_=x; }

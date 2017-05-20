@@ -69,8 +69,8 @@ inline float calculate_distance(const synfig::BLinePoint& a,const synfig::BLineP
 {
 #if 1
 	const Point& c1(a.get_vertex());
-	const Point c2(a.get_vertex()+a.get_tangent2()/3);
-	const Point c3(b.get_vertex()-b.get_tangent1()/3);
+	const Point c2(a.get_vertex()+a.get_scaled_tangent2()/3);
+	const Point c3(b.get_vertex()-b.get_scaled_tangent1()/3);
 	const Point& c4(b.get_vertex());
 	return (c1-c2).mag()+(c2-c3).mag()+(c3-c4).mag();
 #else
@@ -99,8 +99,8 @@ inline float calculate_distance(const std::vector<synfig::BLinePoint>& bline, bo
 		etl::hermite<Vector> curve(
 			iter->get_vertex(),
 			next->get_vertex(),
-			iter->get_tangent2(),
-			next->get_tangent1());
+			iter->get_scaled_tangent2(),
+			next->get_scaled_tangent1());
 
 //		dist+=calculate_distance(*iter,*next);
 		dist+=curve.length();
@@ -139,8 +139,8 @@ find_closest(bool fast, const std::vector<synfig::BLinePoint>& bline,const Point
 		etl::hermite<Vector> curve(
 			iter->get_vertex(),
 			next->get_vertex(),
-			iter->get_tangent2(),
-			next->get_tangent1());
+			iter->get_scaled_tangent2(),
+			next->get_scaled_tangent1());
 
 		/*
 		const float t(curve.find_closest(p,6,0.01,0.99));
@@ -265,7 +265,7 @@ CurveGradient::color_func(const Point &point_, int quality, float supersample)co
 		return Color::alpha();
 	else if(bline.size()==1)
 	{
-		tangent=bline.front().get_tangent1();
+		tangent=bline.front().get_scaled_tangent1();
 		p1=bline.front().get_vertex();
 		thickness=bline.front().get_width();
 	}
@@ -295,8 +295,8 @@ CurveGradient::color_func(const Point &point_, int quality, float supersample)co
 		etl::hermite<Vector> curve(
 			iter->get_vertex(),
 			next->get_vertex(),
-			iter->get_tangent2(),
-			next->get_tangent1()
+			iter->get_scaled_tangent2(),
+			next->get_scaled_tangent1()
 			);
 
 		// Setup the derivative function
@@ -346,7 +346,7 @@ CurveGradient::color_func(const Point &point_, int quality, float supersample)co
 					if (zero_tangent) tangent = curve(FAKE_TANGENT_STEP) - curve(0);
 
 					// calculate the other tangent
-					Vector other_tangent(iter->get_tangent1());
+					Vector other_tangent(iter->get_scaled_tangent1());
 					if (other_tangent[0] == 0 && other_tangent[1] == 0)
 					{
 						// find the previous blinepoint
@@ -355,7 +355,7 @@ CurveGradient::color_func(const Point &point_, int quality, float supersample)co
 						else if (loop) (prev = bline.end())--;
 						else prev = iter;
 
-						etl::hermite<Vector> other_curve(prev->get_vertex(), iter->get_vertex(), prev->get_tangent2(), iter->get_tangent1());
+						etl::hermite<Vector> other_curve(prev->get_vertex(), iter->get_vertex(), prev->get_scaled_tangent2(), iter->get_scaled_tangent1());
 						other_tangent = other_curve(1) - other_curve(1-FAKE_TANGENT_STEP);
 					}
 
@@ -372,7 +372,7 @@ CurveGradient::color_func(const Point &point_, int quality, float supersample)co
 					if (zero_tangent) tangent = curve(1) - curve(1-FAKE_TANGENT_STEP);
 
 					// calculate the other tangent
-					Vector other_tangent(next->get_tangent2());
+					Vector other_tangent(next->get_scaled_tangent2());
 					if (other_tangent[0] == 0 && other_tangent[1] == 0)
 					{
 						// find the next blinepoint
@@ -383,7 +383,7 @@ CurveGradient::color_func(const Point &point_, int quality, float supersample)co
 							else next2 = next;
 						}
 
-						etl::hermite<Vector> other_curve(next->get_vertex(), next2->get_vertex(), next->get_tangent2(), next2->get_tangent1());
+						etl::hermite<Vector> other_curve(next->get_vertex(), next2->get_vertex(), next->get_scaled_tangent2(), next2->get_scaled_tangent1());
 						other_tangent = other_curve(FAKE_TANGENT_STEP) - other_curve(0);
 					}
 
