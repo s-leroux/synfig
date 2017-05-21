@@ -128,7 +128,7 @@ class studio::StateBLine_Context : public sigc::trackable
 	void popup_vertex_menu(synfig::ValueNode_Const::Handle value_node);
 	void popup_bezier_menu(float location, synfig::ValueNode_Const::Handle value_node);
 
-	void bline_set_split_handle(synfig::ValueNode_Const::Handle value_node, bool merge_radius, bool merge_angle);
+	void bline_set_split_handle(synfig::ValueNode_Const::Handle value_node, bool split_angle, bool split_radius, bool is_angular);
 	void bline_delete_vertex(synfig::ValueNode_Const::Handle value_node);
 	void bline_insert_vertex(synfig::ValueNode_Const::Handle value_node,float origin=0.5);
 	void loop_bline();
@@ -1624,7 +1624,7 @@ StateBLine_Context::popup_vertex_menu(synfig::ValueNode_Const::Handle value_node
 	Gtk::ImageMenuItem *item2 = NULL;
 
 	BLinePoint bline_point(value_node->get_value().get(BLinePoint()));
-	#define STATE_BLINE_ADD_MENU_ITEM(title, split_angle, split_radius, icon) \
+	#define STATE_BLINE_ADD_MENU_ITEM(title, split_angle, split_radius, is_angular, icon) \
 	do {                                                                \
 		item2 = manage(new Gtk::ImageMenuItem(                       \
 				*manage(new Gtk::Image(			    \
@@ -1634,7 +1634,7 @@ StateBLine_Context::popup_vertex_menu(synfig::ValueNode_Const::Handle value_node
 		item2->signal_activate().connect(                                \
 				sigc::bind(                                             \
 					sigc::mem_fun(*this,&studio::StateBLine_Context::bline_set_split_handle), \
-					value_node, split_angle, split_radius ));           \
+					value_node, split_angle, split_radius, is_angular ));           \
 		item2->show();                                                   \
 		menu.append(*item2);                                             \
 	} while (false)
@@ -1643,18 +1643,18 @@ StateBLine_Context::popup_vertex_menu(synfig::ValueNode_Const::Handle value_node
 	bool split_radius = bline_point.get_split_tangent_radius();
 	
 	if (split_angle && split_radius)
-		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents", false, false, "gtk-connect");
+		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents", false, false, false, "gtk-connect");
 	else if (!split_angle && !split_radius)
-		STATE_BLINE_ADD_MENU_ITEM("Split Tangents", true, true, "gtk-disconnect");
+		STATE_BLINE_ADD_MENU_ITEM("Split Tangents", true, true, false, "gtk-disconnect");
 	else if (!split_angle && split_radius)
 	{
-		STATE_BLINE_ADD_MENU_ITEM("Split Tangents", true, true, "gtk-disconnect");
-		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents", false, false, "gtk-connect");
+		STATE_BLINE_ADD_MENU_ITEM("Split Tangents", true, true, false, "gtk-disconnect");
+		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents", false, false, false, "gtk-connect");
 	}
 	else if (split_angle && !split_radius)
 	{
-		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents", false, false, "gtk-connect");
-		STATE_BLINE_ADD_MENU_ITEM("Split Tangents", true, true, "gtk-disconnect");
+		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents", false, false, false, "gtk-connect");
+		STATE_BLINE_ADD_MENU_ITEM("Split Tangents", true, true, false, "gtk-disconnect");
 	}
 	
 	item = manage(new Gtk::SeparatorMenuItem());
@@ -1662,14 +1662,16 @@ StateBLine_Context::popup_vertex_menu(synfig::ValueNode_Const::Handle value_node
 	menu.append(*item);
 
 	if (split_angle)
-		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents's Angle", false, split_radius, "synfig-type_angle");
+		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents's Angle", false, split_radius, false, "synfig-type_angle");
 	else
-		STATE_BLINE_ADD_MENU_ITEM("Split Tangents's Angle", true, split_radius, "synfig-type_angle");
+		STATE_BLINE_ADD_MENU_ITEM("Split Tangents's Angle", true, split_radius, false, "synfig-type_angle");
 
 	if (split_radius)
-		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents's Radius", split_angle, false, "synfig-type_vector");
+		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents's Radius", split_angle, false, false, "synfig-type_vector");
 	else
-		STATE_BLINE_ADD_MENU_ITEM("Split Tangents's Radius", split_angle, true, "synfig-type_vector");
+		STATE_BLINE_ADD_MENU_ITEM("Split Tangents's Radius", split_angle, true, false, "synfig-type_vector");
+
+  STATE_BLINE_ADD_MENU_ITEM("Make angular point", true, split_radius, true, "synfig-type_vector");
 
 	#undef STATE_BLINE_ADD_MENU_ITEM
 	
@@ -1824,7 +1826,7 @@ StateBLine_Context::popup_handle_menu(synfig::ValueNode_Const::Handle value_node
 
 	Gtk::MenuItem *item = NULL;
 	Gtk::ImageMenuItem *item2 = NULL;
-	#define STATE_BLINE_ADD_MENU_ITEM(title, split_angle, split_radius, icon)	\
+	#define STATE_BLINE_ADD_MENU_ITEM(title, split_angle, split_radius, is_angular, icon)	\
 	do {                                                                \
 		item2 = manage(new Gtk::ImageMenuItem(                       \
 				*Gtk::manage(new Gtk::Image(			    \
@@ -1834,7 +1836,7 @@ StateBLine_Context::popup_handle_menu(synfig::ValueNode_Const::Handle value_node
 		item2->signal_activate().connect(                                \
 			sigc::bind(													\
 				sigc::mem_fun(*this,&studio::StateBLine_Context::bline_set_split_handle), \
-				value_node, split_angle, split_radius ));               \
+				value_node, split_angle, split_radius, is_angular ));               \
 		item2->show();                                                   \
 		menu.append(*item2);                                             \
 	} while(false)
@@ -1843,18 +1845,18 @@ StateBLine_Context::popup_handle_menu(synfig::ValueNode_Const::Handle value_node
 	bool split_radius = bline_point.get_split_tangent_radius();
 	
 	if (split_angle && split_radius)
-		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents", false, false, "gtk-connect");
+		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents", false, false, false, "gtk-connect");
 	else if (!split_angle && !split_radius)
-		STATE_BLINE_ADD_MENU_ITEM("Split Tangents", true, true, "gtk-disconnect");
+		STATE_BLINE_ADD_MENU_ITEM("Split Tangents", true, true, false, "gtk-disconnect");
 	else if (!split_angle && split_radius)
 	{
-		STATE_BLINE_ADD_MENU_ITEM("Split Tangents", true, true, "gtk-disconnect");
-		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents", false, false, "gtk-connect");
+		STATE_BLINE_ADD_MENU_ITEM("Split Tangents", true, true, false, "gtk-disconnect");
+		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents", false, false, false, "gtk-connect");
 	}
 	else if (split_angle && !split_radius)
 	{
-		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents", false, false, "gtk-connect");
-		STATE_BLINE_ADD_MENU_ITEM("Split Tangents", true, true, "gtk-disconnect");
+		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents", false, false, false, "gtk-connect");
+		STATE_BLINE_ADD_MENU_ITEM("Split Tangents", true, true, false, "gtk-disconnect");
 	}
 	
 	item = manage(new Gtk::SeparatorMenuItem());
@@ -1862,14 +1864,16 @@ StateBLine_Context::popup_handle_menu(synfig::ValueNode_Const::Handle value_node
 	menu.append(*item);
 
 	if (split_angle)
-		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents's Angle", false, split_radius, "synfig-type_angle");
+		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents's Angle", false, split_radius, false, "synfig-type_angle");
 	else
-		STATE_BLINE_ADD_MENU_ITEM("Split Tangents's Angle", true, split_radius, "synfig-type_angle");
+		STATE_BLINE_ADD_MENU_ITEM("Split Tangents's Angle", true, split_radius, false, "synfig-type_angle");
 
 	if (split_radius)
-		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents's Radius", split_angle, false, "synfig-type_vector");
+		STATE_BLINE_ADD_MENU_ITEM("Merge Tangents's Radius", split_angle, false, false, "synfig-type_vector");
 	else
-		STATE_BLINE_ADD_MENU_ITEM("Split Tangents's Radius", split_angle, true, "synfig-type_vector");
+		STATE_BLINE_ADD_MENU_ITEM("Split Tangents's Radius", split_angle, true, false, "synfig-type_vector");
+
+  STATE_BLINE_ADD_MENU_ITEM("Make angular point", true, split_radius, true, "synfig-type_vector");
 
 	#undef STATE_BLINE_ADD_MENU_ITEM
 
@@ -1906,7 +1910,8 @@ StateBLine_Context::popup_handle_menu(synfig::ValueNode_Const::Handle value_node
 }
 
 void
-StateBLine_Context::bline_set_split_handle(synfig::ValueNode_Const::Handle value_node, bool split_angle, bool split_radius)
+StateBLine_Context::bline_set_split_handle(synfig::ValueNode_Const::Handle value_node, 
+                                          bool split_angle, bool split_radius, bool is_angular)
 {
 	BLinePoint bline_point(value_node->get_value().get(BLinePoint()));
 
@@ -1921,6 +1926,11 @@ StateBLine_Context::bline_set_split_handle(synfig::ValueNode_Const::Handle value
 		bline_point.set_tangent2(Vector(bline_point.get_tangent1().mag(), bline_point.get_tangent2().angle()));
 		bline_point.set_split_tangent_radius(split_radius);
 	}
+  
+  if (is_angular)
+  {
+    bline_point.make_angular();
+  }
 
 	value_node->set_value(bline_point);
 	refresh_ducks(false);

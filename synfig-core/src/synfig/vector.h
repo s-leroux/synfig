@@ -167,10 +167,17 @@ public:
 	//! Returns the magnitude of the vector
 	value_type mag()const
 		{ return sqrt(mag_squared()); }
+    
+  const Vector& set_mag(const value_type& new_mag)
+    { return *this = Vector(new_mag, angle()); }
 
 	//! Returns the reciprocal of the magnitude of the vector
 	value_type inv_mag()const
 		{ return 1.0/sqrt(mag_squared()); }
+
+	//! Returns a colinear vector of the given magnitude
+	Vector mag(value_type& new_mag)const
+		{ return Vector(new_mag, angle()); }
 
 	//! Returns a normalized version of the vector
 	Vector norm()const
