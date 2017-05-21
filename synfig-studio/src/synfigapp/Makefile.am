@@ -100,6 +100,7 @@ VALUENODE_ACTION_HH = \
 	actions/valuenodeconstsetstatic.h\
 	actions/valuenodeconstunsetstatic.h\
 	actions/valuenodedynamiclistinsert.h \
+	actions/valuenodedynamiclistinsertangular.h \
 	actions/valuenodedynamiclistinsertsmart.h \
 	actions/valuenodedynamiclistloop.h \
 	actions/valuenodedynamiclistremove.h \
@@ -125,6 +126,7 @@ VALUENODE_ACTION_CC = \
 	actions/valuenodeconstsetstatic.cpp\
 	actions/valuenodeconstunsetstatic.cpp\
 	actions/valuenodedynamiclistinsert.cpp \
+	actions/valuenodedynamiclistinsertangular.cpp \
 	actions/valuenodedynamiclistinsertsmart.cpp \
 	actions/valuenodedynamiclistloop.cpp \
 	actions/valuenodedynamiclistremove.cpp \

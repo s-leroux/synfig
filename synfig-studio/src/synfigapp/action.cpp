@@ -68,6 +68,7 @@
 #include "actions/valuenodelinkdisconnect.h"
 #include "actions/valuenodedynamiclistinsert.h"
 #include "actions/valuenodedynamiclistremove.h"
+#include "actions/valuenodedynamiclistinsertangular.h"
 #include "actions/valuenodedynamiclistinsertsmart.h"
 #include "actions/valuenodedynamiclistremovesmart.h"
 #include "actions/valuenodedynamiclistloop.h"
@@ -221,6 +222,7 @@ Action::Main::Main()
 	ADD_ACTION(Action::ValueNodeLinkDisconnect);
 	ADD_ACTION(Action::ValueNodeDynamicListInsert);
 	ADD_ACTION(Action::ValueNodeDynamicListRemove);
+	ADD_ACTION(Action::ValueNodeDynamicListInsertAngular);
 	ADD_ACTION(Action::ValueNodeDynamicListInsertSmart);
 	ADD_ACTION(Action::ValueNodeDynamicListInsertSmartKeepShape);
 	ADD_ACTION(Action::ValueNodeDynamicListRemoveSmart);
