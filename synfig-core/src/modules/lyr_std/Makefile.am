@@ -16,6 +16,8 @@ liblyr_std_la_SOURCES = \
 	main.cpp \
 	timeloop.cpp \
 	timeloop.h \
+	timewarp.cpp \
+	timewarp.h \
 	warp.cpp \
 	warp.h \
 	xorpattern.cpp \
