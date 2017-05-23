@@ -181,63 +181,6 @@ Layer_TimeWarp::reset_version()
 		return;
 
 	old_version = false;
-
-	// these are the conversions to go from 0.1 to 0.2:
-	//
-	//	 local_time = start_time
-	//	 duration = end_time - start_time
-	//	 if (time < start_time)
-	//	   link_time = -duration : if we want to reproduce the old behaviour - do we?
-	//	 else
-	//		 link_time = 0
-
-	// convert the static parameters
-	local_time = start_time;
-	duration = end_time - start_time;
-	only_for_positive_duration = true;
-	symmetrical = false;
-
-	param_anim_origin.set(local_time);
-	param_anim_duration.set(duration);
-	param_ignore_negative_offset.set(only_for_positive_duration);
-	param_symmetrical.set(symmetrical);
-	
-	//! \todo layer version 0.1 acted differently before start_time was reached - possibly due to a bug
-	link_time = 0;
-	param_time_shift.set(link_time);
-
-	// convert the dynamic parameters
-	const DynamicParamList &dpl = dynamic_param_list();
-
-	// if neither start_time nor end_time are dynamic, there's nothing more to do
-	if (dpl.count("start_time") == 0 && dpl.count("end_time") == 0)
-		return;
-
-	etl::rhandle<ValueNode> start_time_value_node, end_time_value_node;
-	LinkableValueNode* duration_value_node;
-
-	if (dpl.count("start_time"))
-	{
-		start_time_value_node = dpl.find("start_time")->second;
-		disconnect_dynamic_param("start_time");
-	}
-	else
-		start_time_value_node = ValueNode_Const::create(start_time);
-
-	if (dpl.count("end_time"))
-	{
-		end_time_value_node = dpl.find("end_time")->second;
-		disconnect_dynamic_param("end_time");
-	}
-	else
-		end_time_value_node = ValueNode_Const::create(end_time);
-
-	duration_value_node = ValueNode_Subtract::create(Time(0));
-	duration_value_node->set_link("lhs", end_time_value_node);
-	duration_value_node->set_link("rhs", start_time_value_node);
-
-	connect_dynamic_param("local_time", start_time_value_node);
-	connect_dynamic_param("duration",   duration_value_node);
 }
 
 void
