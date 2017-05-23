@@ -68,8 +68,8 @@ SYNFIG_LAYER_SET_CVS_ID(Layer_TimeWarp,"$Id$");
 Layer_TimeWarp::Layer_TimeWarp()
 {
 	old_version=false;
-	param_ignore_negative_offset=ValueBase(false);
-	param_symmetrical=ValueBase(true);
+	param_ignore_negative_offset=ValueBase(true);
+	param_symmetrical=ValueBase(false);
 	param_time_shift=ValueBase(Time(0));
 	param_anim_origin=ValueBase(Time(0));
 	param_anim_duration=ValueBase(Time(1));
@@ -129,33 +129,33 @@ Layer_TimeWarp::get_param_vocab()const
 {
 	Layer::Vocab ret(Layer::get_param_vocab());
 
-	ret.push_back(ParamDesc("link_time")
-		.set_local_name(_("Link Time"))
-		.set_description(_("Start time of the loop for the cycled context"))
+	ret.push_back(ParamDesc("time_shift")
+		.set_local_name(_("Time Shift"))
+		.set_description(_("Offset to apply to current frame"))
+		.set_static(false)
+	);
+
+	ret.push_back(ParamDesc("anim_origin")
+		.set_local_name(_("Animation Origin Time"))
+		.set_description(_("The initial frame of the nested animation"))
 		.set_static(true)
 	);
 
-	ret.push_back(ParamDesc("local_time")
-		.set_local_name(_("Local Time"))
-		.set_description(_("The time when the resulted loop starts"))
+	ret.push_back(ParamDesc("anim_duration")
+		.set_local_name(_("Animation Duration"))
+		.set_description(_("Lenght of the nested animation"))
 		.set_static(true)
 	);
 
-	ret.push_back(ParamDesc("duration")
-		.set_local_name(_("Duration"))
-		.set_description(_("Lenght of the loop"))
-		.set_static(true)
-	);
-
-	ret.push_back(ParamDesc("only_for_positive_duration")
-		.set_local_name(_("Only For Positive Duration"))
-		.set_description(_("When checked will loop only positive durations"))
+	ret.push_back(ParamDesc("ignore_negative_offset")
+		.set_local_name(_("Ignore Negative Offset"))
+		.set_description(_("Do not change the time if the target is before Animation Origin"))
 		.set_static(true)
 	);
 
 	ret.push_back(ParamDesc("symmetrical")
 		.set_local_name(_("Symmetrical"))
-		.set_description(_("When checked, loops are mirrored centered at Local Time"))
+		.set_description(_("When checked, loops are mirrored centered at Animation Origin"))
 		.set_static(true)
 	);
 
@@ -243,48 +243,35 @@ Layer_TimeWarp::reset_version()
 void
 Layer_TimeWarp::set_time(IndependentContext context, Time t)const
 {
-	Time link_time=param_time_shift.get(Time());
-	Time local_time=param_anim_origin.get(Time());
-	Time duration=param_anim_duration.get(Time());
-	bool only_for_positive_duration=param_ignore_negative_offset.get(bool());
+	Time time_shift=param_time_shift.get(Time());
+	Time anim_origin=param_anim_origin.get(Time());
+	Time anim_duration=param_anim_duration.get(Time());
+	bool ignore_negative_offset=param_ignore_negative_offset.get(bool());
 	bool symmetrical=param_symmetrical.get(bool());
 	
-	Time time = t;
-	float document_fps=get_canvas()->rend_desc().get_frame_rate();
-	if (!only_for_positive_duration || duration > 0)
-	{
-		if (duration == 0)
-			t = link_time;
-		else {
-			float t_frames = round(t*document_fps);
-			float duration_frames = round(duration*document_fps);
-			if (duration > 0)
-			{
-				t -= local_time;
-				// Simple formula looks like this:
-				// t -= floor(t / duration) * duration;
-				// but we should make all calculations in frames to avoid round errors
-				t_frames -= floor(t_frames / duration_frames) * duration_frames;
-				// converting back to seconds:
-				t = t_frames / document_fps;
-				t = link_time + t;
-			}
-			else
-			{
-				t -= local_time;
-				// Simple formula looks like this:
-				// t -= floor(t / -duration) * -duration;
-				// but we should make all calculations in frames to avoid round errors
-				t_frames -= floor(t_frames / -duration_frames) * -duration_frames;
-				// converting back to seconds:
-				t = t_frames / document_fps;
-				t = link_time - t;
-			}
-		}
-		// for compatibility with v0.1 layers; before local_time is reached, take a step back
-		if (!symmetrical && time < local_time)
-			t -= duration;
-	}
+	float fps=get_canvas()->rend_desc().get_frame_rate();
+  
+  // perform all calculation in *frames* to minimize rounding errors
+  float offset = fmod(round((t+time_shift)*fps), round(anim_duration*fps))/fps;
+  
+  if (offset >= 0)
+  {
+    // "Normal" case
+    t = anim_origin+offset;  
+  }
+  else if (ignore_negative_offset)
+  {
+    t = anim_origin;
+  }
+  else if (symmetrical)
+  {
+    t = anim_origin-offset;
+  }
+  else
+  {
+    t = anim_origin+anim_duration-offset;
+  }
+
 	context.set_time(t);
 }
 

@@ -66,6 +66,7 @@
 
 #include "warp.h"
 #include "timeloop.h"
+#include "timewarp.h"
 #include "curvewarp.h"
 #include "stroboscope.h"
 
@@ -76,8 +77,8 @@
 MODULE_DESC_BEGIN(liblyr_std)
 	MODULE_NAME("Standard Layers")
 	MODULE_DESCRIPTION("Provides a basic set of standard layers")
-	MODULE_AUTHOR("Robert B. Quattlebaum")
-	MODULE_VERSION("1.0")
+	MODULE_AUTHOR("Robert B. Quattlebaum, Sylvain Leroux")
+	MODULE_VERSION("1.1")
 	MODULE_COPYRIGHT(SYNFIG_COPYRIGHT)
 MODULE_DESC_END
 
@@ -99,6 +100,7 @@ MODULE_INVENTORY_BEGIN(liblyr_std)
 		LAYER(Layer_Shade)
 		LAYER(Layer_Bevel)
 		LAYER(Layer_TimeLoop)
+		LAYER(Layer_TimeWarp)
 		LAYER(Layer_Stroboscope)
 		LAYER(Layer_SphereDistort)
 		LAYER(CurveWarp)
