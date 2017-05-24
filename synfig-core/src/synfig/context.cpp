@@ -99,9 +99,7 @@ IndependentContext::set_time(Time time)const
 		// then break out of the loop and set its time
 		if((*context)->active() &&
 		   (!(*context)->dirty_time_.is_equal(time) ||
-			(*context)->get_name() == "stroboscope" ||
-			(*context)->get_name() == "timeloop" ||
-      (*context)->get_name() == "timewarp") ) // XXX Those special cases could cause maintenance issues
+			(*context)->has_time_influence()) )
 			break;
 
 		// Otherwise, we want to keep searching

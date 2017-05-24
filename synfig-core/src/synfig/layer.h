@@ -478,6 +478,11 @@ public:
 	//!Returns the rectangle that includes the context of the layer
 	//!\see synfig::Rect synfig::Context
 	virtual Rect get_full_bounding_rect(Context context)const;
+  
+  
+	//!Returns true if that layer has time influence on underlying layers
+  //!Most layers don't. But few have (like TimeLoop)
+  virtual bool has_time_influence()const { return false; };
 
 	//! Returns a string containing the name of the Layer
 	virtual String get_name()const;

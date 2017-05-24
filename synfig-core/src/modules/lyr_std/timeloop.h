@@ -78,6 +78,8 @@ public:
 	virtual void reset_version();
 	virtual Color get_color(Context context, const Point &pos)const;
 
+  virtual bool has_time_influence()const { return true; };
+
 	virtual void set_time(IndependentContext context, Time time)const;
 	virtual bool accelerated_render(Context context,Surface *surface,int quality, const RendDesc &renddesc, ProgressCallback *cb)const;
 	virtual bool accelerated_cairorender(Context context, cairo_t *cr, int quality, const RendDesc &renddesc, ProgressCallback *cb)const;

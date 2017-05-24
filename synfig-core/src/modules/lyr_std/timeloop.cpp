@@ -250,7 +250,6 @@ Layer_TimeLoop::set_time(IndependentContext context, Time t)const
 	bool symmetrical=param_symmetrical.get(bool());
 	
 	Time time = t;
-  fprintf(stderr, "was %g\n", float(t));
 
 	float document_fps=get_canvas()->rend_desc().get_frame_rate();
 	if (!only_for_positive_duration || duration > 0)
@@ -287,8 +286,6 @@ Layer_TimeLoop::set_time(IndependentContext context, Time t)const
 		if (!symmetrical && time < local_time)
 			t -= duration;
 	}
-  fprintf(stderr, "new %g\n", float(t));
-
 	context.set_time(t);
 }
 

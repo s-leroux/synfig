@@ -194,11 +194,11 @@ Layer_TimeWarp::set_time(IndependentContext context, Time t)const
 	
 	float fps=get_canvas()->rend_desc().get_frame_rate();
   
-  fprintf(stderr, "was %g\n", float(t));
+//  fprintf(stderr, "was %g\n", float(t));
   
   // perform all calculation in *frames* to minimize rounding errors
   float offset = fmod(round((t+time_shift)*fps), round(anim_duration*fps))/fps;
-  fprintf(stderr, "offset %g\n", float(offset));
+//  fprintf(stderr, "offset %g\n", float(offset));
   
   if (offset >= 0)
   {
@@ -218,7 +218,7 @@ Layer_TimeWarp::set_time(IndependentContext context, Time t)const
     t = anim_origin+anim_duration-offset;
   }
 
-  fprintf(stderr, "new %g\n", float(t));
+//  fprintf(stderr, "new %g\n", float(t));
 	context.set_time(t);
 }
 
