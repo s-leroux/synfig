@@ -95,11 +95,13 @@ IndependentContext::set_time(Time time)const
 		// it either isn't already set to the given time
 		//        or it's a stroboscope layer,
 		//        or it's a time loop layer,
+		//        or it's a time warp layer,
 		// then break out of the loop and set its time
 		if((*context)->active() &&
 		   (!(*context)->dirty_time_.is_equal(time) ||
 			(*context)->get_name() == "stroboscope" ||
-			(*context)->get_name() == "timeloop"))
+			(*context)->get_name() == "timeloop" ||
+      (*context)->get_name() == "timewarp") ) // XXX Those special cases could cause maintenance issues
 			break;
 
 		// Otherwise, we want to keep searching
