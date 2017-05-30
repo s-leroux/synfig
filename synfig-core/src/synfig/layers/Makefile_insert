@@ -10,6 +10,7 @@ LAYERS_HH = \
 	layers/layer_polygon.h \
 	layers/layer_shape.h \
 	layers/layer_solidcolor.h \
+	layers/layer_halfplane.h \
 	layers/layer_sound.h \
 	layers/layer_skeleton.h \
 	layers/layer_skeletondeformation.h \
@@ -27,6 +28,7 @@ LAYERS_CC = \
 	layers/layer_polygon.cpp \
 	layers/layer_shape.cpp \
 	layers/layer_solidcolor.cpp \
+	layers/layer_halfplane.cpp \
 	layers/layer_sound.cpp \
 	layers/layer_skeleton.cpp \
 	layers/layer_skeletondeformation.cpp \
@@ -38,4 +40,3 @@ libsynfig_include_HH += \
 libsynfig_src += \
     $(LAYERS_HH) \
     $(LAYERS_CC)
-

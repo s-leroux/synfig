@@ -41,6 +41,7 @@
 #include "paramdesc.h"
 #include "surface.h"
 
+#include <synfig/layers/layer_halfplane.h>
 #include <synfig/layers/layer_solidcolor.h>
 #include <synfig/layers/layer_polygon.h>
 #include <synfig/layers/layer_group.h>
@@ -119,6 +120,7 @@ Layer::subsys_init()
 				  class::cvs_id__,								\
 				  class::version__)
 
+	INCLUDE_LAYER(Layer_HalfPlane);
 	INCLUDE_LAYER(Layer_SolidColor);
 		LAYER_ALIAS(Layer_SolidColor,	"solid_color");
 	INCLUDE_LAYER(Layer_Group);

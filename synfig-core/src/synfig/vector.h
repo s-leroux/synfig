@@ -176,6 +176,14 @@ public:
 	Vector norm()const
 		{ return (*this)*inv_mag(); }
 
+  //! Returns the slope of the vector (possibly +/-Inf)
+  value_type slope() const
+    { return _y/_x; }
+
+  //! Returns the inverse slope of the vector (possibly +/-Inf)
+  value_type inv_slope() const
+    { return _x/_y; }
+
 	//! Returns a perpendicular version of the vector
 	Vector perp()const
 		{ return Vector(_y,-_x); }

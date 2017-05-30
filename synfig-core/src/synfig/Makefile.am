@@ -80,6 +80,7 @@ SYNFIGHEADERS = \
 	string.h \
 	string_decl.h \
 	types.h \
+	range.h \
 	vector.h \
 	transformation.h \
 	version.h \
@@ -238,4 +239,3 @@ libsynfig_la_LDFLAGS = \
 
 
 include_synfigdir = @synfigincludedir@/synfig
-

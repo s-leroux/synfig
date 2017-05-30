@@ -252,18 +252,6 @@ public:
 		deletable_=false;	
 	}
 
-	void
-	fill(value_type v, int x, int y, int w, int h)
-	{
-		assert(data_);
-		if(w<=0 || h<=0)return;
-		int i;
-		pen PEN(get_pen(x,y));
-		PEN.set_value(v);
-		for(i=0;i<h;i++,PEN.inc_y(),PEN.dec_x(w))
-			PEN.put_hline(w);
-	}
-
 	template <class _pen> void
 	fill(value_type v, _pen& PEN, int w, int h)
 	{
@@ -276,15 +264,30 @@ public:
 	}
 
 	void
+	fill(value_type v, int x, int y, int w, int h)
+	{
+    pen pen_(get_pen(x,y));
+    fill(v, pen_, w, h);
+	}
+
+	void
 	fill(value_type v)
 	{
-		assert(data_);
-		int y;
-		pen pen_=begin();
-		pen_.set_value(v);
-		for(y=0;y<h_;y++,pen_.inc_y(),pen_.dec_x(w_))
-			pen_.put_hline(w_);
+    pen pen_(begin());
+    fill(v, pen_, w_, h_);
 	}
+  
+  //! draw ("fill") an horizontal line
+  void hline(value_type v, int y)
+  {
+    hline(v, 0, y, w_);
+  }
+  
+  //! draw ("fill") an horizontal line
+  void hline(value_type v, int x, int y, int width)
+  {
+    fill(v, x, y, 1, width);
+  }
 
 	template <class _pen> void blit_to(_pen &pen)
 	{ return blit_to(pen,0,0, get_w(),get_h()); }
