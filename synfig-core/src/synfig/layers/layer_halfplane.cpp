@@ -207,14 +207,17 @@ Layer_HalfPlane::accelerated_render(Context context,Surface *surface,int quality
   {
     float line = v_range.unmap(i, 0, h);
     Range visible = h_range.clamp(get_border(line));
-    fprintf(stderr,"h_range: %f %f visible: %f %f\n", h_range.from(), h_range.to(), visible.from(), visible.to());
+    //fprintf(stderr,"h_range: %f %f visible: %f %f\n", h_range.from(), h_range.to(), visible.from(), visible.to());
 
     if (visible)
     {
       Range line = h_range.map(visible, 0, w);
-      fprintf(stderr,"line: %f %f\n", h_range.from(), h_range.to(), visible.from(), visible.to());
-	    Surface::pen pen(surface->get_pen(line.from(),i));
-      pen.put_hline(line.width(), color); 
+      //fprintf(stderr,"line: %f %f\n", line.from(), line.to());
+      Surface::pen pen = surface->get_pen(line.from(),i);
+      pen.set_value(color);
+			Surface::alpha_pen apen(pen,get_amount(),get_blend_method());
+
+      apen.put_hline(line.width()); 
     }
   }
 
