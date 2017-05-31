@@ -154,7 +154,7 @@ public:
 		}
 		else
 		{
-			synfig::error("on_editing_done(): Called twice!");
+			synfig::warning("on_editing_done(): Called twice!");
 		}
 	}
 	void set_parent(Gtk::Widget*x) { parent=x; }
@@ -703,7 +703,7 @@ CellRenderer_ValueBase::on_value_editing_done()
 {
 	if (edit_value_done_called)
 	{
-		synfig::error("on_value_editing_done(): Called twice!");
+		synfig::warning("on_value_editing_done(): Called twice!");
 		return;
 	}
 
