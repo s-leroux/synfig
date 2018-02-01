@@ -704,7 +704,7 @@ CellRenderer_ValueBase::on_value_editing_done()
 	if (edit_value_done_called)
 	{
 		synfig::warning("on_value_editing_done(): Called twice!");
-		return;
+		//return;
 	}
 
 	edit_value_done_called = true;
@@ -714,7 +714,7 @@ CellRenderer_ValueBase::on_value_editing_done()
 		ValueBase old_value(property_value_.get_value());
 		ValueBase value(value_entry->get_value());
 
-		if(old_value!=value)
+	//	if(old_value!=value)
 			signal_edited_(value_entry->get_path(),value);
 
 		//delete value_entry;
