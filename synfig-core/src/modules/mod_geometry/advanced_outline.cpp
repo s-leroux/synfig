@@ -77,7 +77,7 @@ param_bline(ValueBase(std::vector<synfig::BLinePoint>())),
 param_wplist(ValueBase(std::vector<synfig::WidthPoint>())),
 param_dilist(ValueBase(std::vector<synfig::DashItem>()))
 {
-	param_cusp_type = ValueBase(int(TYPE_SHARP));
+	param_cusp_type = ValueBase(int(TYPE_ROUNDED)); // Make that coherent with start and end tips
 	param_start_tip = param_end_tip = ValueBase(int(WidthPoint::TYPE_ROUNDED));
 	param_width = ValueBase(Real(1.0f));
 	param_expand = ValueBase(Real(0));
@@ -108,12 +108,12 @@ param_dilist(ValueBase(std::vector<synfig::DashItem>()))
 	vector<WidthPoint> wpoint_list;
 	wpoint_list.push_back(WidthPoint());
 	wpoint_list.push_back(WidthPoint());
-	wpoint_list[0].set_position(0.1);
-	wpoint_list[1].set_position(0.9);
+	wpoint_list[0].set_position(0.0);
+	wpoint_list[1].set_position(1.0);
 	wpoint_list[0].set_width(1.0);
 	wpoint_list[1].set_width(1.0);
-	wpoint_list[0].set_side_type_before(WidthPoint::TYPE_INTERPOLATE);
-	wpoint_list[1].set_side_type_after(WidthPoint::TYPE_INTERPOLATE);
+	wpoint_list[0].set_side_type_after(WidthPoint::TYPE_INTERPOLATE);
+	wpoint_list[1].set_side_type_before(WidthPoint::TYPE_INTERPOLATE);
 	param_wplist.set_list_of(wpoint_list);
 	
 	vector<DashItem> ditem_list;

@@ -55,7 +55,7 @@ WidthPoint::WidthPoint():
 	lower_bound_(0.0),
 	upper_bound_(1.0)
 {
-	side_type_[0] = side_type_[1] = TYPE_INTERPOLATE;
+	side_type_[0] = side_type_[1] = TYPE_ROUNDED;
 }
 
 WidthPoint::WidthPoint(Real position, Real width, int sidebefore, int sideafter, bool dash):
