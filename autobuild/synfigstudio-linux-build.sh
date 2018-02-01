@@ -1001,6 +1001,8 @@ initialize()
 					libglibmm-2.4-dev \
 					libsigc++-2.0-dev \
 					libxml++2.6-dev \
+                                        libmagick++-6.q16-dev \
+                                        libmagickwand-6.q16-dev \
 					libboost-program-options-dev \
 					libboost-system-dev \
 					libboost-filesystem-dev \
