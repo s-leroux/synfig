@@ -21,6 +21,7 @@
 /* ========================================================================= */
 
 /* === H E A D E R S ======================================================= */
+#include "gtest/gtest.h"
 
 #ifdef USING_PCH
 #	include "pch.h"
@@ -58,12 +59,12 @@ int bone_test2()
 
 /* === E N T R Y P O I N T ================================================= */
 
-int main()
+TEST(BoneTest, LegacyTest)
 {
 	int failures = 0;
 
 	failures += bone_test1();
 	failures += bone_test2();
 
-	return failures;
+	ASSERT_EQ(failures,0);
 }
