@@ -58,6 +58,7 @@
 #include "valuenodes/valuenode_add.h"
 #include "valuenodes/valuenode_subtract.h"
 #include "valuenodes/valuenode_timedswap.h"
+#include "valuenodes/valuenode_timescale.h"
 #include "valuenodes/valuenode_twotone.h"
 #include "valuenodes/valuenode_bline.h"
 #include "valuenodes/valuenode_staticlist.h"
@@ -152,6 +153,7 @@ ValueNode::subsys_init()
 	ADD_VALUENODE(ValueNode_RadialComposite,  "radial_composite", _("Radial Composite"), RELEASE_VERSION_0_61_06);
 	ADD_VALUENODE(ValueNode_Reference,		  "reference",		  _("Reference"),		 RELEASE_VERSION_0_61_06);
 	ADD_VALUENODE(ValueNode_Scale,			  "scale",			  _("Scale"),			 RELEASE_VERSION_0_61_06);
+	ADD_VALUENODE(ValueNode_TimeScale,			  "timescale",			  _("Time Scale"),			 RELEASE_VERSION_1_1);
 	ADD_VALUENODE(ValueNode_SegCalcTangent,	  "segcalctangent",	  _("Segment Tangent"),	 RELEASE_VERSION_0_61_06);
 	ADD_VALUENODE(ValueNode_SegCalcVertex,	  "segcalcvertex",	  _("Segment Vertex"),	 RELEASE_VERSION_0_61_06);
 	ADD_VALUENODE(ValueNode_Stripes,		  "stripes",		  _("Stripes"),			 RELEASE_VERSION_0_61_06);
