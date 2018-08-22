@@ -7,6 +7,7 @@
 **	\legal
 **	Copyright (c) 2002-2005 Robert B. Quattlebaum Jr., Adrian Bentley
 **	Copyright (c) 2007, 2008 Chris Moore
+**	Copyright (c) 2018 Sylvain Leroux
 **
 **	This package is free software; you can redistribute it and/or
 **	modify it under the terms of the GNU General Public License as
@@ -41,6 +42,7 @@
 
 #include "noise.h"
 #include "distort.h"
+#include "perlin.h"
 #include "random_noise.h"
 #include "valuenode_random.h"
 
@@ -51,8 +53,8 @@
 MODULE_DESC_BEGIN(libmod_noise)
 	MODULE_NAME("Noise")
 	MODULE_DESCRIPTION("writeme")
-	MODULE_AUTHOR("Robert B. Quattlebaum")
-	MODULE_VERSION("1.0")
+	MODULE_AUTHOR("Robert B. Quattlebaum/Sylvain Leroux")
+	MODULE_VERSION("1.1")
 	MODULE_COPYRIGHT(SYNFIG_COPYRIGHT)
 MODULE_DESC_END
 
@@ -60,6 +62,7 @@ MODULE_INVENTORY_BEGIN(libmod_noise)
 	BEGIN_LAYERS
 		LAYER(Noise)
 		LAYER(NoiseDistort)
+		LAYER(PerlinNoise)
 	END_LAYERS
 
 	BEGIN_VALUENODES
