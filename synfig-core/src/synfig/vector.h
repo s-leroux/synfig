@@ -140,6 +140,8 @@ public:
 	operator*(const value_type &rhs)const
 		{ return Vector(*this)*=rhs; }
 
+  friend Vector operator*(const value_type& v, const Vector &s) { return v*s; }
+
 	Vector
 	operator/(const value_type &rhs)const
 		{ return Vector(*this)/=rhs; }
@@ -167,6 +169,15 @@ public:
 	//! Returns the magnitude of the vector
 	value_type mag()const
 		{ return sqrt(mag_squared()); }
+
+	//! Return a new vector whose components are rounded to the nearest integer
+	//! lower than the actual value
+	Vector floor()const
+		{ return Vector(::floor(_x),::floor(_y)); }
+
+	//! Return a new vector made of the fractional parts of the individual components of the receiver
+	Vector fract()const
+		{ return Vector(_x-::floor(_x),_y-::floor(_y)); }
 
 	//! Returns the reciprocal of the magnitude of the vector
 	value_type inv_mag()const
@@ -228,6 +239,17 @@ namespace std {
 inline synfig::Vector::value_type
 abs(const synfig::Vector &rhs)
 	{ return rhs.mag(); }
+
+inline synfig::Vector floor(const synfig::Vector& v)
+  { return v.floor(); }
+
+inline synfig::Vector fract(const synfig::Vector& v)
+  { return v.fract(); }
+
+inline synfig::Vector mix(const synfig::Vector & x,
+                          const synfig::Vector & y,
+                          synfig::Vector::value_type a)
+    { return x*(1-a)+y*a; }
 
 }; // END of namespace std
 

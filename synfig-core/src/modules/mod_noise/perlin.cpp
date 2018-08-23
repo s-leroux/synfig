@@ -158,10 +158,43 @@ PerlinNoise::set_time(synfig::IndependentContext context, synfig::Time t, const 
 }
 #endif
 
+/*
+ * Based on https://thebookofshaders.com/13/
+ */
+Real hash(const Vector& p)
+{
+  double unused;
+
+  return modf(1e4 * sin(17.0 * p[0] + p[1] * 0.1) * (0.1 + abs(sin(p[1] * 13.0 + p[0]))), &unused);
+}
+
+/*
+ * Based on https://www.shadertoy.com/view/4dS3Wd
+ */
+Real noise(const Point& x) {
+  Point i = floor(x);
+  Point f = fract(x);
+
+	// Four corners in 2D of a tile
+	Real a = ::hash(i);
+  Real b = ::hash(i + Point(1.0, 0.0));
+  Real c = ::hash(i + Point(0.0, 1.0));
+  Real d = ::hash(i + Point(1.0, 1.0));
+
+  // Simple 2D lerp using smoothstep envelope between the values.
+	return mix(
+          mix(a, b, smoothstep(0.0, 1.0, f[0])),
+				  mix(c, d, smoothstep(0.0, 1.0, f[0])),
+				  smoothstep(0.0, 1.0, f[1])
+        );
+}
+
+
 inline Color
 PerlinNoise::color_func(const Point &point, float /*supersample*/,Context context)const
 {
-	Color ret = Color::white();
+	Color ret = Color::white()*noise(point);
+  ret.set_alpha(1.0);
 //	ret=context.get_color(point_func(point));
 	return ret;
 }
