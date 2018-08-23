@@ -68,95 +68,13 @@ PerlinNoise::PerlinNoise():
 	param_size(ValueBase(Vector(1,1))),
 	param_random(ValueBase(int(time(NULL)))),
 	param_smooth(ValueBase(int(RandomNoise::SMOOTH_COSINE))),
-	param_detail(ValueBase(int(4))),
+	param_iterations(ValueBase(int(2))),
 	param_speed(ValueBase(Real(0))),
 	param_turbulent(bool(false))
 {
 	SET_INTERPOLATION_DEFAULTS();
 	SET_STATIC_DEFAULTS();
 }
-
-#if 0
-inline Point
-PerlinNoise::point_func(const Point &point)const
-{
-	Vector displacement=param_displacement.get(Vector());
-	Vector size=param_size.get(Vector());
-	RandomNoise random;
-	random.set_seed(param_random.get(int()));
-	int smooth_=param_smooth.get(int());
-	int detail=param_detail.get(int());
-	Real speed=param_speed.get(Real());
-	bool turbulent=param_turbulent.get(bool());
-
-	float x(point[0]/size[0]*(1<<detail));
-	float y(point[1]/size[1]*(1<<detail));
-
-	int i;
-	Time time;
-	time=speed*curr_time;
-	int temp_smooth(smooth_);
-	int smooth((!speed && temp_smooth == (int)(RandomNoise::SMOOTH_SPLINE)) ? (int)(RandomNoise::SMOOTH_FAST_SPLINE) : temp_smooth);
-
-	Vector vect(0,0);
-	for(i=0;i<detail;i++)
-	{
-		vect[0]=random(RandomNoise::SmoothType(smooth),0+(detail-i)*5,x,y,time)+vect[0]*0.5;
-		vect[1]=random(RandomNoise::SmoothType(smooth),1+(detail-i)*5,x,y,time)+vect[1]*0.5;
-
-		if(vect[0]<-1)vect[0]=-1;if(vect[0]>1)vect[0]=1;
-		if(vect[1]<-1)vect[1]=-1;if(vect[1]>1)vect[1]=1;
-
-		if(turbulent)
-		{
-			vect[0]=abs(vect[0]);
-			vect[1]=abs(vect[1]);
-		}
-
-		x/=2.0f;
-		y/=2.0f;
-	}
-
-	if(!turbulent)
-	{
-		vect[0]=vect[0]/2.0f+0.5f;
-		vect[1]=vect[1]/2.0f+0.5f;
-	}
-	vect[0]=(vect[0]-0.5f)*displacement[0];
-	vect[1]=(vect[1]-0.5f)*displacement[1];
-
-	return point+vect;
-}
-
-inline CairoColor
-PerlinNoise::cairocolor_func(const Point &point, float /*supersample*/,Context context)const
-{
-	CairoColor ret(0,0,0,0);
-	ret=context.get_cairocolor(point_func(point));
-	return ret;
-}
-
-
-inline float
-PerlinNoise::calc_supersample(const synfig::Point &/*x*/, float /*pw*/,float /*ph*/)const
-{
-	return 0.0f;
-}
-
-void
-PerlinNoise::set_time(synfig::IndependentContext context, synfig::Time t)const
-{
-	curr_time=t;
-	context.set_time(t);
-}
-
-void
-PerlinNoise::set_time(synfig::IndependentContext context, synfig::Time t, const synfig::Point &point)const
-{
-	curr_time=t;
-	context.set_time(t,point);
-}
-#endif
 
 /*
  * Based on https://thebookofshaders.com/13/
@@ -198,7 +116,21 @@ Real noise(const Point& x) {
 inline Color
 PerlinNoise::color_func(const Point &point, float /*supersample*/,Context context)const
 {
-	Color ret = Color::white()*noise(point);
+  Vector x = point;
+  Real v = 0.0;
+  Real a = 0.5;
+  Vector shift(100.0, 100.0);
+  Angle r = Angle::deg(15);
+
+ 	int iterations=param_iterations.get(int());
+  for (int i = 0; i < iterations; ++i) {
+    v += a*noise(x);
+
+    a = a*0.5;
+    x = x.rotate(r)*2.0+shift;
+  }
+
+	Color ret = Color::white()*v;
   ret.set_alpha(1.0);
 //	ret=context.get_color(point_func(point));
 	return ret;
@@ -222,7 +154,7 @@ PerlinNoise::set_param(const String & param, const ValueBase &value)
 	IMPORT_VALUE(param_displacement);
 	IMPORT_VALUE(param_size);
 	IMPORT_VALUE(param_random);
-	IMPORT_VALUE(param_detail);
+	IMPORT_VALUE(param_iterations);
 	IMPORT_VALUE(param_smooth);
 	IMPORT_VALUE(param_speed);
 	IMPORT_VALUE(param_turbulent);
@@ -237,7 +169,7 @@ PerlinNoise::get_param(const String & param)const
 	EXPORT_VALUE(param_displacement);
 	EXPORT_VALUE(param_size);
 	EXPORT_VALUE(param_random);
-	EXPORT_VALUE(param_detail);
+	EXPORT_VALUE(param_iterations);
 	EXPORT_VALUE(param_smooth);
 	EXPORT_VALUE(param_speed);
 	EXPORT_VALUE(param_turbulent);
@@ -279,9 +211,9 @@ PerlinNoise::get_param_vocab()const
 		.add_enum_value(RandomNoise::SMOOTH_SPLINE,	"spline",	_("Spline"))
 		.add_enum_value(RandomNoise::SMOOTH_CUBIC,	"cubic",	_("Cubic"))
 	);
-	ret.push_back(ParamDesc("detail")
-		.set_local_name(_("Detail"))
-		.set_description(_("Increase to obtain fine details of the noise"))
+	ret.push_back(ParamDesc("iterations")
+		.set_local_name(_("Iterations"))
+		.set_description(_("Number of iterations (octave) applied"))
 	);
 	ret.push_back(ParamDesc("speed")
 		.set_local_name(_("Animation Speed"))

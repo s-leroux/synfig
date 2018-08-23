@@ -54,7 +54,7 @@ private:
 	//!Parameter: (RandomNoise::SmoothType)
 	synfig::ValueBase param_smooth;
 	//!Parameter: (int)
-	synfig::ValueBase param_detail;
+	synfig::ValueBase param_iterations;
 	//!Parameter: (synfig::Real)
 	synfig::ValueBase param_speed;
 	//!Parameter: (bool)
