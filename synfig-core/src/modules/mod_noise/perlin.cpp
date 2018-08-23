@@ -163,9 +163,10 @@ PerlinNoise::set_time(synfig::IndependentContext context, synfig::Time t, const 
  */
 Real hash(const Vector& p)
 {
-  double unused;
+  double result = fract(1e4 * sin(17.0 * p[0] + p[1] * 0.1) * (0.1 + abs(sin(p[1] * 13.0 + p[0]))));
+  //cerr << "hash: " << result << endl;
 
-  return modf(1e4 * sin(17.0 * p[0] + p[1] * 0.1) * (0.1 + abs(sin(p[1] * 13.0 + p[0]))), &unused);
+  return result;
 }
 
 /*
@@ -182,11 +183,15 @@ Real noise(const Point& x) {
   Real d = ::hash(i + Point(1.0, 1.0));
 
   // Simple 2D lerp using smoothstep envelope between the values.
-	return mix(
+	Real result = mix(
           mix(a, b, smoothstep(0.0, 1.0, f[0])),
 				  mix(c, d, smoothstep(0.0, 1.0, f[0])),
 				  smoothstep(0.0, 1.0, f[1])
         );
+
+  //cerr << "noise: " << result << endl;
+
+  return result;
 }
 
 

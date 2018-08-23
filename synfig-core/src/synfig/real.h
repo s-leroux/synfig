@@ -25,6 +25,9 @@
 #ifndef __SYNFIG_REAL_H
 #define __SYNFIG_REAL_H
 
+/* === H E A D E R S ======================================================= */
+#include <cmath>
+
 /* === T Y P E D E F S ===================================================== */
 
 namespace synfig {
@@ -38,6 +41,11 @@ typedef double Real;
 }; // END of namespace synfig
 
 namespace std {
+
+inline synfig::Real fract(synfig::Real x)
+{
+  return x-floor(x);
+}
 
 inline synfig::Real clamp(synfig::Real x, synfig::Real min, synfig::Real max)
 {
