@@ -87,6 +87,9 @@ public:
 	bool is_valid()const { return !(isnan(_x) || isnan(_y)); }
 	bool is_nan_or_inf()const { return isnan(_x) || isnan(_y) || isinf(_x) || isinf(_y); }
 
+
+  static const unsigned int dim = 2;
+
 	value_type &
 	operator[](const int& i)
 	{ return i?_y:_x; }
@@ -230,11 +233,163 @@ public:
 */
 typedef Vector Point;
 
+template<unsigned int DIM>
+class VectorND {
+public:
+	typedef Real value_type;
 
+protected:
+	value_type _n[DIM];
+
+public:
+  typedef VectorND<DIM> Type;
+  static const unsigned int dimensions = DIM;
+
+  VectorND() : _n{} {}
+
+  VectorND(const VectorND<DIM>& o) {
+      for(unsigned i = 0; i < DIM; ++i) _n[i] = o._n[i];
+  }
+
+  template<typename ... Tail>
+  VectorND(typename std::enable_if<sizeof...(Tail)+1 == DIM, value_type>::type head, Tail... tail)
+            : _n{ head, value_type(tail)... } {}
+
+  value_type operator[](unsigned int n) const {
+    return (n < DIM) ? _n[n] : 0.0;
+  }
+
+	bool
+	operator==(const Type &rhs)const
+		{
+      for(unsigned i = 0; i < DIM; ++i) if (_n[i] != rhs._n[i]) return false;
+      return true;
+    }
+
+	bool
+	operator!=(const Type &rhs)const
+		{ return !operator==(rhs); }
+
+
+	const Type &
+	operator+=(const Type &rhs)
+	{
+    for(unsigned i = 0; i < DIM; ++i) _n[i]+=rhs._n[i];
+		return *this;
+	}
+
+	Type
+	operator+(const Type &rhs) {
+    Type result = *this;
+    return result += rhs;
+  }
+
+	const Type &
+	operator-=(const Type &rhs)
+	{
+    for(unsigned i = 0; i < DIM; ++i) _n[i]-=rhs._n[i];
+		return *this;
+	}
+
+	Type
+	operator-(const Type &rhs) {
+    Type result = *this;
+    return result -= rhs;
+  }
+
+	const Type &
+	operator*=(const Type &rhs)
+	{
+    for(unsigned i = 0; i < DIM; ++i) _n[i]*=rhs._n[i];
+		return *this;
+	}
+
+	Type
+	operator*(const Type &rhs) {
+    Type result = *this;
+    return result *= rhs;
+  }
+
+	const Type &
+	operator*=(const value_type &rhs)
+	{
+    for(unsigned i = 0; i < DIM; ++i) _n[i]*=rhs;
+		return *this;
+	}
+
+	Type
+	operator*(const value_type &rhs) {
+    Type result = *this;
+    return result *= rhs;
+  }
+
+	const Type &
+	operator/=(const Type &rhs)
+	{
+    for(unsigned i = 0; i < DIM; ++i) _n[i]/=rhs._n[i];
+		return *this;
+	}
+
+	Type
+	operator/(const Type &rhs) {
+    Type result = *this;
+    return result /= rhs;
+  }
+
+	const Type &
+	operator/=(const value_type &rhs)
+	{
+    for(unsigned i = 0; i < DIM; ++i) _n[i]/=rhs;
+		return *this;
+	}
+
+	Type
+	operator/(const value_type &rhs) {
+    Type result = *this;
+    return result /= rhs;
+  }
+
+  template<typename Op>
+  Type apply() const
+  {
+    Type result;
+    for(unsigned i = 0; i < DIM; ++i) result._n[i] = Op::apply(_n[i]);
+		return result;
+  }
+
+};
+
+typedef VectorND<3> Vector3D;
+typedef VectorND<2> Vector2D;
 
 }; // END of namespace synfig
 
 namespace std {
+
+template<unsigned int N>
+inline synfig::VectorND<N> floor(const synfig::VectorND<N> receiver) {
+  struct Op {
+    static double apply(const typename synfig::VectorND<N>::value_type& v) { return std::floor(v); }
+  };
+  return receiver.template apply<Op>();
+}
+
+template<unsigned int N>
+inline synfig::VectorND<N> fract(const synfig::VectorND<N> receiver) {
+  struct Op {
+    static double apply(const typename synfig::VectorND<N>::value_type& v) { return v - std::floor(v); }
+  };
+  return receiver.template apply<Op>();
+}
+
+inline
+synfig::Vector2D rotate(const synfig::Vector2D& lhs, const synfig::Angle &rhs)
+	{
+		synfig::Vector2D::value_type s = synfig::Angle::sin(rhs).get();
+		synfig::Vector2D::value_type c = synfig::Angle::cos(rhs).get();
+		return synfig::Vector2D(c*lhs[0] - s*lhs[1], s*lhs[0] + c*lhs[1]);
+	}
+
 
 inline synfig::Vector::value_type
 abs(const synfig::Vector &rhs)

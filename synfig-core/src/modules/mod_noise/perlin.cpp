@@ -79,7 +79,7 @@ PerlinNoise::PerlinNoise():
 /*
  * Based on https://thebookofshaders.com/13/
  */
-Real hash(const Vector& p)
+Real hash(const Vector2D& p)
 {
   double result = fract(1e4 * sin(17.0 * p[0] + p[1] * 0.1) * (0.1 + abs(sin(p[1] * 13.0 + p[0]))));
   //cerr << "hash: " << result << endl;
@@ -90,15 +90,15 @@ Real hash(const Vector& p)
 /*
  * Based on https://www.shadertoy.com/view/4dS3Wd
  */
-Real noise(const Point& x) {
-  Point i = floor(x);
-  Point f = fract(x);
+Real noise(const Vector2D& x) {
+  Vector2D i = floor(x);
+  Vector2D f = fract(x);
 
 	// Four corners in 2D of a tile
 	Real a = ::hash(i);
-  Real b = ::hash(i + Point(1.0, 0.0));
-  Real c = ::hash(i + Point(0.0, 1.0));
-  Real d = ::hash(i + Point(1.0, 1.0));
+  Real b = ::hash(i + Vector2D(1.0, 0.0));
+  Real c = ::hash(i + Vector2D(0.0, 1.0));
+  Real d = ::hash(i + Vector2D(1.0, 1.0));
 
   // Simple 2D lerp using smoothstep envelope between the values.
 	Real result = mix(
@@ -116,10 +116,10 @@ Real noise(const Point& x) {
 inline Color
 PerlinNoise::color_func(const Point &point, float /*supersample*/,Context context)const
 {
-  Vector x = point;
+  Vector2D x(point[0],point[1]);
   Real v = 0.0;
   Real a = 0.5;
-  Vector shift(100.0, 100.0);
+  Vector2D shift(100.0, 100.0);
   Angle r = Angle::deg(15);
 
  	int iterations=param_iterations.get(int());
@@ -127,7 +127,7 @@ PerlinNoise::color_func(const Point &point, float /*supersample*/,Context contex
     v += a*noise(x);
 
     a = a*0.5;
-    x = x.rotate(r)*2.0+shift;
+    x = rotate(x,r)*2.0 + shift;
   }
 
 	Color ret = Color::white()*v;
