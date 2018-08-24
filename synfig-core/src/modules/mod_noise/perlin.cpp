@@ -79,7 +79,7 @@ PerlinNoise::PerlinNoise():
 /*
  * Based on https://thebookofshaders.com/13/
  */
-Real hash(const Vector2D& p)
+Real hash(const Vector& p)
 {
   double result = fract(1e4 * sin(17.0 * p[0] + p[1] * 0.1) * (0.1 + abs(sin(p[1] * 13.0 + p[0]))));
   //cerr << "hash: " << result << endl;
@@ -87,47 +87,100 @@ Real hash(const Vector2D& p)
   return result;
 }
 
-/*
- * Based on https://www.shadertoy.com/view/4dS3Wd
- */
-Real noise(const Vector2D& x) {
-  Vector2D i = floor(x);
-  Vector2D f = fract(x);
 
-	// Four corners in 2D of a tile
-	Real a = ::hash(i);
-  Real b = ::hash(i + Vector2D(1.0, 0.0));
-  Real c = ::hash(i + Vector2D(0.0, 1.0));
-  Real d = ::hash(i + Vector2D(1.0, 1.0));
+struct PerlinGrid
+{
+  struct Entry {
+    Real up;
+    Real down;
+    Point p;
+  };
 
-  // Simple 2D lerp using smoothstep envelope between the values.
-	Real result = mix(
-          mix(a, b, smoothstep(0.0, 1.0, f[0])),
-				  mix(c, d, smoothstep(0.0, 1.0, f[0])),
-				  smoothstep(0.0, 1.0, f[1])
-        );
+  Real _scale;
+  size_t  _width;
+  size_t _height;
+  Entry   *_entries;
 
-  //cerr << "noise: " << result << endl;
+  PerlinGrid(Real scale, size_t width, size_t height) :
+    _scale(scale),
+    _width(width),
+    _height(height),
+    _entries(new Entry[height*width])
+  {
+    size_t x, y;
+ 	  Point pos;
+    auto entrie = _entries;
 
-  return result;
-}
+  	for(y=0,pos[1]=100.0;y<height;y++,pos[1]+=scale)
+  		for(x=0,pos[0]=0.0;x<width;x++,pos[0]+=scale)
+      {
+        entrie->p = pos;
+        entrie->up = ::hash(pos);
+        entrie->down = ::hash(pos);
+
+        ++entrie;
+      }
+  }
+  ~PerlinGrid() { delete[] _entries; }
+
+  inline size_t index(const Point& p) const {
+    int x = int(floor(p[0]/_scale))%_width;
+    int y = int(floor(p[1]/_scale))%_height;
+    if (x<0) x = _width-x;
+    if (y<0) y = _height-y;
+
+    return index(x,y);
+  }
+
+  inline size_t index(size_t x, size_t y) const { return y*_width+x; }
+  inline const Entry& get(size_t x, size_t y) const { return _entries[index(x,y)]; }
+  inline const Entry& get(Point p) const { return _entries[index(p)]; }
+  inline Entry* entries() const { return _entries; }
+
+  /*
+   * Based on https://www.shadertoy.com/view/4dS3Wd
+   */
+  Real noise(const Point& p) const {
+  	// Four corners in 2D of a tile
+  	Real a = get(p).up;
+    Real b = get(p + Vector(_scale, 0.0)).up;
+    Real c = get(p + Vector(0.0, _scale)).up;
+    Real d = get(p + Vector(_scale, _scale)).up;
+
+    Point f = fract(p/_scale);
+
+    // Simple 2D lerp using smoothstep envelope between the values.
+  	Real result = mix(
+            mix(a, b, smoothstep(0.0, 1.0, f[0])),
+  				  mix(c, d, smoothstep(0.0, 1.0, f[0])),
+  				  smoothstep(0.0, 1.0, f[1])
+          );
+
+    //cerr << "noise: " << result << endl;
+
+    return result;
+  }
+
+
+};
+
 
 
 inline Color
-PerlinNoise::color_func(const Point &point, float /*supersample*/,Context context)const
+PerlinNoise::color_func(const PerlinGrid& grid, const Point& point, Context context)const
 {
-  Vector2D x(point[0],point[1]);
+  Vector x(point[0],point[1]);
   Real v = 0.0;
   Real a = 0.5;
-  Vector2D shift(100.0, 100.0);
+  Vector shift(100.0, 100.0);
   Angle r = Angle::deg(15);
 
  	int iterations=param_iterations.get(int());
   for (int i = 0; i < iterations; ++i) {
-    v += a*noise(x);
+    v += a*grid.noise(x);
 
     a = a*0.5;
-    x = rotate(x,r)*2.0 + shift;
+    x = x.rotate(r)*2.0 + shift;
   }
 
 	Color ret = Color::white()*v;
@@ -143,7 +196,9 @@ PerlinNoise::hit_check(synfig::Context context, const synfig::Point &point)const
 		return const_cast<PerlinNoise*>(this);
 	if(get_amount()==0.0)
 		return context.hit_check(point);
-	if(color_func(point,0,context).get_a()>0.5)
+
+  PerlinGrid grid(5.0, 10, 10);
+	if(color_func(grid, point, context).get_a()>0.5)
 		return const_cast<PerlinNoise*>(this);
 	return synfig::Layer::Handle();
 }
@@ -227,10 +282,11 @@ PerlinNoise::get_param_vocab()const
 	return ret;
 }
 
-
 bool
 PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, const RendDesc &renddesc, ProgressCallback *cb)const
 {
+	RENDER_TRANSFORMED_IF_NEED(__FILE__, __LINE__)
+
 	SuperCallback supercb(cb,0,9500,10000);
 
 	if(!context.accelerated_render(surface,quality,renddesc,&supercb))
@@ -248,9 +304,11 @@ PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, co
 	const int w(surface->get_w());
 	const int h(surface->get_h());
 
+  PerlinGrid grid(5.0, 10, 10);
+
 	for(y=0,pos[1]=tl[1];y<h;y++,pen.inc_y(),pen.dec_x(x),pos[1]+=ph)
 		for(x=0,pos[0]=tl[0];x<w;x++,pen.inc_x(),pos[0]+=pw)
-			pen.put_value(color_func(pos,0.0,context));
+			pen.put_value(color_func(grid, pos, context));
 
 	// Mark our progress as finished
 	if(cb && !cb->amount_complete(10000,10000))
@@ -262,7 +320,9 @@ PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, co
 Color
 PerlinNoise::get_color(Context context, const Point &point)const
 {
-	const Color color = color_func(point,0,context);
+  PerlinGrid grid(5.0, 10, 10);
+
+	const Color color = color_func(grid, point, context);
 
 	if(get_amount()==1.0 && get_blend_method()==Color::BLEND_STRAIGHT)
 		return color;

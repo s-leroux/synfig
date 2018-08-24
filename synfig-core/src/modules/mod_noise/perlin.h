@@ -39,6 +39,7 @@
 /* === T Y P E D E F S ===================================================== */
 
 /* === C L A S S E S & S T R U C T S ======================================= */
+struct PerlinGrid;
 
 class PerlinNoise : public synfig::Layer_Composite
 {
@@ -63,7 +64,7 @@ private:
 	//void sync();
 	mutable synfig::Time curr_time;
 
-	synfig::Color color_func(const synfig::Point &x, float supersample,synfig::Context context)const;
+	synfig::Color color_func(const PerlinGrid& grid, const synfig::Point &x, synfig::Context context)const;
 //	synfig::Point point_func(const synfig::Point &point)const;
 
 //	float calc_supersample(const synfig::Point &x, float pw,float ph)const;
