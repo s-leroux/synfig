@@ -40,6 +40,7 @@
 #include <synfig/value.h>
 #include <synfig/valuenode.h>
 #include <time.h>
+#include <random>
 
 #endif
 
@@ -64,12 +65,14 @@ SYNFIG_LAYER_SET_CVS_ID(PerlinNoise,"$Id$");
 
 PerlinNoise::PerlinNoise():
 	Layer_Composite(1.0,Color::BLEND_STRAIGHT),
-	param_displacement(ValueBase(Vector(0.25,0.25))),
+
+	param_iterations(ValueBase(int(2))),
+	param_time(ValueBase(Real(0))),
+
+  param_displacement(ValueBase(Vector(0.25,0.25))),
 	param_size(ValueBase(Vector(1,1))),
 	param_random(ValueBase(int(time(NULL)))),
 	param_smooth(ValueBase(int(RandomNoise::SMOOTH_COSINE))),
-	param_iterations(ValueBase(int(2))),
-	param_speed(ValueBase(Real(0))),
 	param_turbulent(bool(false))
 {
 	SET_INTERPOLATION_DEFAULTS();
@@ -87,78 +90,121 @@ Real hash(const Vector& p)
   return result;
 }
 
+// 	<www.shadertoy.com/view/XsX3zB>
+//	by Nikita Miropolskiy
+
+/* discontinuous pseudorandom uniformly distributed in [0.0, +1.0]^3 */
+Vector3D random3(Vector3D c) {
+	Real j = 4096.0*sin(dot(c,Vector3D(17.0, 59.4, 15.0)));
+	Real x,y,z;
+	z = fract(512.0*j);
+	j *= .125;
+	x = fract(512.0*j);
+	j *= .125;
+	y = fract(512.0*j);
+
+	return Vector3D(x,y,z);
+}
+
+Real hash(const Vector3D& p)
+{
+  Real result = dot(random3(p), Vector3D(52.0,52.0,52.0))/(3*52.0);
+
+//  std::cout << result << std::endl;
+
+  return result;
+}
 
 struct PerlinGrid
 {
-  struct Entry {
-    Real up;
-    Real down;
-    Point p;
-  };
-
+  std::mt19937 _prng;
   Real _scale;
-  size_t  _width;
-  size_t _height;
-  Entry   *_entries;
+  const int  _width;
+  const int  _size3D;
+  const int  _size2D;
+  Real   *_v; // 3D map in the [0; 1] range
+  Real   *_t; // 2D map in the [0; 1] range
 
-  PerlinGrid(Real scale, size_t width, size_t height) :
+  PerlinGrid(int seed, Real scale, int width) :
+    _prng(seed),
     _scale(scale),
     _width(width),
-    _height(height),
-    _entries(new Entry[height*width])
+    _size3D(width*width*width),
+    _size2D(width*width),
+    _v(new Real[_size3D+_size2D]),
+    _t(_v+_size3D)
   {
-    size_t x, y;
- 	  Point pos;
-    auto entrie = _entries;
+    Real  RANDMAX(_prng.max());
 
-  	for(y=0,pos[1]=100.0;y<height;y++,pos[1]+=scale)
-  		for(x=0,pos[0]=0.0;x<width;x++,pos[0]+=scale)
+  	for(int i=0;i<_width*_width;++i)
+    {
+      _t[i] = Real(_prng())/RANDMAX;
+      for(int j = 0; j < _width; ++j)
       {
-        entrie->p = pos;
-        entrie->up = ::hash(pos);
-        entrie->down = ::hash(pos);
-
-        ++entrie;
+        _v[j*_size2D+i] = Real(_prng())/RANDMAX;
       }
-  }
-  ~PerlinGrid() { delete[] _entries; }
-
-  inline size_t index(const Point& p) const {
-    int x = int(floor(p[0]/_scale))%_width;
-    int y = int(floor(p[1]/_scale))%_height;
-    if (x<0) x = _width-x;
-    if (y<0) y = _height-y;
-
-    return index(x,y);
+    }
   }
 
-  inline size_t index(size_t x, size_t y) const { return y*_width+x; }
-  inline const Entry& get(size_t x, size_t y) const { return _entries[index(x,y)]; }
-  inline const Entry& get(Point p) const { return _entries[index(p)]; }
-  inline Entry* entries() const { return _entries; }
+  ~PerlinGrid() { delete[] _v; }
 
-  /*
-   * Based on https://www.shadertoy.com/view/4dS3Wd
-   */
-  Real noise(const Point& p) const {
-  	// Four corners in 2D of a tile
-  	Real a = get(p).up;
-    Real b = get(p + Vector(_scale, 0.0)).up;
-    Real c = get(p + Vector(0.0, _scale)).up;
-    Real d = get(p + Vector(_scale, _scale)).up;
+  inline Real noise(Real xf, Real yf, Real zf) const {
+    xf /= _scale;
+    yf /= _scale;
 
-    Point f = fract(p/_scale);
+    Real xfloor = floor(xf);
+    Real yfloor = floor(yf);
+    Real xfract = xf - xfloor;
+    Real yfract = yf - yfloor;
 
-    // Simple 2D lerp using smoothstep envelope between the values.
-  	Real result = mix(
-            mix(a, b, smoothstep(0.0, 1.0, f[0])),
-  				  mix(c, d, smoothstep(0.0, 1.0, f[0])),
-  				  smoothstep(0.0, 1.0, f[1])
-          );
+    int x0 = int(xfloor)%_width;
+    int y0 = int(yfloor)%_width;
+    if (x0<0) x0 = _width+x0;
+    if (y0<0) y0 = _width+y0;
 
-    //cerr << "noise: " << result << endl;
+    int x1 = (x0+1)%_width;
+    int y1 = (y0+1)%_width;
 
-    return result;
+    int a = x0+y0*_width;
+    int b = x1+y0*_width;
+    int c = x0+y1*_width;
+    int d = x1+y1*_width;
+
+    // Adjust zf according to _t
+    Real deltaz0 = _t[a] + xfract*(_t[b]-_t[a]);
+    Real deltaz1 = _t[c] + xfract*(_t[d]-_t[c]);
+
+    zf += deltaz0+yfract*(deltaz1-deltaz0);
+
+    Real zfloor = floor(zf);
+    Real zfract = zf - zfloor;
+
+    int z0 = int(zfloor)%_width;
+    if (z0<0) z0 = _width+z0;
+    int z1 = (z0+1)%_width;
+
+    int a_z0 = a+z0*_size2D;
+    int b_z0 = b+z0*_size2D;
+    int c_z0 = c+z0*_size2D;
+    int d_z0 = d+z0*_size2D;
+
+    int a_z1 = a+z1*_size2D;
+    int b_z1 = b+z1*_size2D;
+    int c_z1 = c+z1*_size2D;
+    int d_z1 = d+z1*_size2D;
+
+    Real v_y0_z0 = _v[a_z0] + xfract*(_v[b_z0]-_v[a_z0]);
+    Real v_y0_z1 = _v[a_z1] + xfract*(_v[b_z1]-_v[a_z1]);
+    Real v_y0 = v_y0_z0 + zfract*(v_y0_z1-v_y0_z0);
+
+    Real v_y1_z0 = _v[c_z0] + xfract*(_v[d_z0]-_v[c_z0]);
+    Real v_y1_z1 = _v[c_z1] + xfract*(_v[d_z1]-_v[c_z1]);
+    Real v_y1 = v_y1_z0 + zfract*(v_y1_z1-v_y1_z0);
+
+    Real v = v_y0 + yfract*(v_y1-v_y0);
+
+    // std::cout << v << '\n';
+    return v;
   }
 
 
@@ -167,9 +213,9 @@ struct PerlinGrid
 
 
 inline Color
-PerlinNoise::color_func(const PerlinGrid& grid, const Point& point, Context context)const
+PerlinNoise::color_func(const PerlinGrid& grid, const Point& point, Real time, Context context)const
 {
-  Vector x(point[0],point[1]);
+  Vector p(point[0],point[1]);
   Real v = 0.0;
   Real a = 0.5;
   Vector shift(100.0, 100.0);
@@ -177,10 +223,11 @@ PerlinNoise::color_func(const PerlinGrid& grid, const Point& point, Context cont
 
  	int iterations=param_iterations.get(int());
   for (int i = 0; i < iterations; ++i) {
-    v += a*grid.noise(x);
+    v += a*grid.noise(p[0], p[1], time);
 
     a = a*0.5;
-    x = x.rotate(r)*2.0 + shift;
+    p = p.rotate(r)*2.0 + shift;
+    time = time *2.0+100.0;
   }
 
 	Color ret = Color::white()*v;
@@ -197,8 +244,9 @@ PerlinNoise::hit_check(synfig::Context context, const synfig::Point &point)const
 	if(get_amount()==0.0)
 		return context.hit_check(point);
 
-  PerlinGrid grid(5.0, 10, 10);
-	if(color_func(grid, point, context).get_a()>0.5)
+ 	Real time=param_time.get(Real());
+  PerlinGrid grid(0, 5.0, 10);
+	if(color_func(grid, point, time, context).get_a()>0.5)
 		return const_cast<PerlinNoise*>(this);
 	return synfig::Layer::Handle();
 }
@@ -206,12 +254,13 @@ PerlinNoise::hit_check(synfig::Context context, const synfig::Point &point)const
 bool
 PerlinNoise::set_param(const String & param, const ValueBase &value)
 {
+	IMPORT_VALUE(param_iterations);
+	IMPORT_VALUE(param_time);
+
 	IMPORT_VALUE(param_displacement);
 	IMPORT_VALUE(param_size);
 	IMPORT_VALUE(param_random);
-	IMPORT_VALUE(param_iterations);
 	IMPORT_VALUE(param_smooth);
-	IMPORT_VALUE(param_speed);
 	IMPORT_VALUE(param_turbulent);
 	if(param=="seed")
 		return set_param("random", value);
@@ -221,12 +270,13 @@ PerlinNoise::set_param(const String & param, const ValueBase &value)
 ValueBase
 PerlinNoise::get_param(const String & param)const
 {
+	EXPORT_VALUE(param_iterations);
+	EXPORT_VALUE(param_time);
+
 	EXPORT_VALUE(param_displacement);
 	EXPORT_VALUE(param_size);
 	EXPORT_VALUE(param_random);
-	EXPORT_VALUE(param_iterations);
 	EXPORT_VALUE(param_smooth);
-	EXPORT_VALUE(param_speed);
 	EXPORT_VALUE(param_turbulent);
 
 	if(param=="seed")
@@ -242,6 +292,15 @@ Layer::Vocab
 PerlinNoise::get_param_vocab()const
 {
 	Layer::Vocab ret(Layer_Composite::get_param_vocab());
+
+	ret.push_back(ParamDesc("iterations")
+		.set_local_name(_("Iterations"))
+		.set_description(_("Number of iterations (octave) applied"))
+	);
+	ret.push_back(ParamDesc("time")
+		.set_local_name(_("Time (z-axis position)"))
+		.set_description(_("In arbitrary units"))
+	);
 
 	ret.push_back(ParamDesc("displacement")
 		.set_local_name(_("Displacement"))
@@ -265,14 +324,6 @@ PerlinNoise::get_param_vocab()const
 		.add_enum_value(RandomNoise::SMOOTH_COSINE,	"cosine",	_("Cosine"))
 		.add_enum_value(RandomNoise::SMOOTH_SPLINE,	"spline",	_("Spline"))
 		.add_enum_value(RandomNoise::SMOOTH_CUBIC,	"cubic",	_("Cubic"))
-	);
-	ret.push_back(ParamDesc("iterations")
-		.set_local_name(_("Iterations"))
-		.set_description(_("Number of iterations (octave) applied"))
-	);
-	ret.push_back(ParamDesc("speed")
-		.set_local_name(_("Animation Speed"))
-		.set_description(_("In cycles per second"))
 	);
 	ret.push_back(ParamDesc("turbulent")
 		.set_local_name(_("Turbulent"))
@@ -304,11 +355,13 @@ PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, co
 	const int w(surface->get_w());
 	const int h(surface->get_h());
 
-  PerlinGrid grid(5.0, 10, 10);
+
+ 	Real time=param_time.get(Real());
+  PerlinGrid grid(0, 5.0, 10);
 
 	for(y=0,pos[1]=tl[1];y<h;y++,pen.inc_y(),pen.dec_x(x),pos[1]+=ph)
 		for(x=0,pos[0]=tl[0];x<w;x++,pen.inc_x(),pos[0]+=pw)
-			pen.put_value(color_func(grid, pos, context));
+			pen.put_value(color_func(grid, pos, time, context));
 
 	// Mark our progress as finished
 	if(cb && !cb->amount_complete(10000,10000))
@@ -320,9 +373,10 @@ PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, co
 Color
 PerlinNoise::get_color(Context context, const Point &point)const
 {
-  PerlinGrid grid(5.0, 10, 10);
+ 	Real time=param_time.get(Real());
+  PerlinGrid grid(0, 5.0, 10);
 
-	const Color color = color_func(grid, point, context);
+	const Color color = color_func(grid, point, time, context);
 
 	if(get_amount()==1.0 && get_blend_method()==Color::BLEND_STRAIGHT)
 		return color;

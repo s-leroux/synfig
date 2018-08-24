@@ -37,9 +37,9 @@
 
 /* === U S I N G =========================================================== */
 
-using namespace std;
 using namespace etl;
 using namespace synfig;
+using namespace std;
 
 /* === M A C R O S ========================================================= */
 
@@ -65,21 +65,21 @@ namespace synfig {
 
 TEST(VectorTest, Floor)
 {
-  EXPECT_EQ(floor(Vector(1.5, 2.5)), Vector(1,2));
-  EXPECT_EQ(floor(Vector(1.8, 2.2)), Vector(1,2));
-  EXPECT_EQ(floor(Vector(-1.8, -2.2)), Vector(-2,-3));
+  EXPECT_EQ(std::floor(Vector(1.5, 2.5)), Vector(1,2));
+  EXPECT_EQ(std::floor(Vector(1.8, 2.2)), Vector(1,2));
+  EXPECT_EQ(std::floor(Vector(-1.8, -2.2)), Vector(-2,-3));
 }
 
 const double epsilon = 1e-6;
 TEST(VectorTest, Fract)
 {
 
-  EXPECT_NEAR(fract(Vector(1.5, 2.5))[0], 0.5, epsilon);
-  EXPECT_NEAR(fract(Vector(1.5, 2.5))[1], 0.5, epsilon);
-  EXPECT_NEAR(fract(Vector(1.8, 2.2))[0], 0.8, epsilon);
-  EXPECT_NEAR(fract(Vector(1.8, 2.2))[1], 0.2, epsilon);
-  EXPECT_NEAR(fract(Vector(-1.8, -2.2))[0], 0.2, epsilon);
-  EXPECT_NEAR(fract(Vector(-1.8, -2.2))[1], 0.8, epsilon);
+  EXPECT_NEAR(std::fract(Vector(1.5, 2.5))[0], 0.5, epsilon);
+  EXPECT_NEAR(std::fract(Vector(1.5, 2.5))[1], 0.5, epsilon);
+  EXPECT_NEAR(std::fract(Vector(1.8, 2.2))[0], 0.8, epsilon);
+  EXPECT_NEAR(std::fract(Vector(1.8, 2.2))[1], 0.2, epsilon);
+  EXPECT_NEAR(std::fract(Vector(-1.8, -2.2))[0], 0.2, epsilon);
+  EXPECT_NEAR(std::fract(Vector(-1.8, -2.2))[1], 0.8, epsilon);
 }
 
 TEST(Vector3DTest, Dimensions)
@@ -99,6 +99,11 @@ TEST(Vector3DTest, Ctor)
   EXPECT_EQ(v[0], 2.0);
   EXPECT_EQ(v[1], 3.0);
   EXPECT_EQ(v[2], 4.0);
+
+  Vector3D  v2(1.1);
+  EXPECT_EQ(v2[0], 1.1);
+  EXPECT_EQ(v2[1], 1.1);
+  EXPECT_EQ(v2[2], 1.1);
 }
 
 TEST(Vector3DTest, Equality)
@@ -121,7 +126,9 @@ TEST(Vector3DTest, Arithmetics)
   EXPECT_EQ(v3+=v2, Vector3D(3,5,7));
 
   EXPECT_EQ(v1+v2, Vector3D(3,5,7));
+  EXPECT_EQ(v1+10.1, Vector3D(10.1,11.1,12.1));
   EXPECT_EQ(v1-v2, Vector3D(-3,-3,-3));
+  EXPECT_EQ(v1-10.1, Vector3D(-10.1,-9.1,-8.1));
   EXPECT_EQ(v1*v2, Vector3D(0,4,10));
   EXPECT_EQ(v1/v2, Vector3D(0.0/3,1.0/4,2.0/5));
 }
@@ -132,6 +139,18 @@ TEST(Vector3DTest, Functions)
   Vector3D  v2 = {3,4,5};
 
   EXPECT_EQ(floor(v1), Vector3D(0,1,2));
+  EXPECT_NEAR(sum(v1), 4.5, epsilon);
+  EXPECT_NEAR(dot(v1,v2), 20.6, epsilon);
+  EXPECT_NEAR(dot(v2,v1), 20.6, epsilon);
+}
+
+TEST(Vector3DTest, BinaryFunctions)
+{
+  Vector3D  v1 = {1,   2,  3};
+  Vector3D  v2 = {+3, -4, +5};
+
+  EXPECT_EQ(min(v1,v2), Vector3D(1,-4,3));
+  EXPECT_EQ(min(v1,2.0), Vector3D(1,2,2));
 }
 
 TEST(Vector3DTest, Rotate)

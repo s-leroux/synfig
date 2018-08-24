@@ -46,6 +46,11 @@ class PerlinNoise : public synfig::Layer_Composite
 	SYNFIG_LAYER_MODULE_EXT
 
 private:
+	synfig::ValueBase param_iterations;
+	//!Parameter: (synfig::Real)
+	synfig::ValueBase param_time;
+	//!Parameter: (bool)
+
 	//!Parameter: (synfig::Vector)
 	synfig::ValueBase param_displacement;
 	//!Parameter: (synfig::Vector)
@@ -55,16 +60,12 @@ private:
 	//!Parameter: (RandomNoise::SmoothType)
 	synfig::ValueBase param_smooth;
 	//!Parameter: (int)
-	synfig::ValueBase param_iterations;
-	//!Parameter: (synfig::Real)
-	synfig::ValueBase param_speed;
-	//!Parameter: (bool)
 	synfig::ValueBase param_turbulent;
 
 	//void sync();
 	mutable synfig::Time curr_time;
 
-	synfig::Color color_func(const PerlinGrid& grid, const synfig::Point &x, synfig::Context context)const;
+	synfig::Color color_func(const PerlinGrid& grid, const synfig::Point &x, synfig::Real time, synfig::Context context)const;
 //	synfig::Point point_func(const synfig::Point &point)const;
 
 //	float calc_supersample(const synfig::Point &x, float pw,float ph)const;
