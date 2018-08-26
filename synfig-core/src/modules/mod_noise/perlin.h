@@ -32,6 +32,7 @@
 #include <synfig/layers/layer_composite.h>
 #include <synfig/gradient.h>
 #include <synfig/time.h>
+#include <synfig/real.h>
 #include "random_noise.h"
 
 /* === M A C R O S ========================================================= */
@@ -39,6 +40,7 @@
 /* === T Y P E D E F S ===================================================== */
 
 /* === C L A S S E S & S T R U C T S ======================================= */
+template<synfig::Real (*SHAPE)(const synfig::Real&)>
 struct PerlinGrid;
 
 class PerlinNoise : public synfig::Layer_Composite
@@ -67,7 +69,8 @@ private:
 	//void sync();
 	mutable synfig::Time curr_time;
 
-	synfig::Color color_func(const PerlinGrid& grid, const synfig::Point &x, synfig::Real time, synfig::Context context)const;
+  template<synfig::Real(* S)(const synfig::Real&)>
+	synfig::Color color_func(const PerlinGrid<S>& grid, const synfig::Point &x, synfig::Real time, synfig::Context context)const;
 //	synfig::Point point_func(const synfig::Point &point)const;
 
 //	float calc_supersample(const synfig::Point &x, float pw,float ph)const;

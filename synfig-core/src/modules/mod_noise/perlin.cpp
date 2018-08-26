@@ -39,6 +39,7 @@
 #include <synfig/surface.h>
 #include <synfig/value.h>
 #include <synfig/valuenode.h>
+#include <synfig/math.h>
 #include <time.h>
 #include <random>
 
@@ -116,6 +117,9 @@ Real hash(const Vector3D& p)
   return result;
 }
 
+//inline bool moreThanHalf(const double& v) { return v > 0.5; }
+template<Real (*SHAPE)(const Real&) = ShapingFunction<Real>::step>
+//template<Real (*SHAPE)(const Real&) = ShapingFunction::linear>
 struct PerlinGrid
 {
   std::mt19937 _prng;
@@ -194,6 +198,11 @@ struct PerlinGrid
     int c_z1 = c+z1*_size2D;
     int d_z1 = d+z1*_size2D;
 
+    // shape the {x,y,f}fract parts
+    xfract = SHAPE(xfract);
+    yfract = SHAPE(yfract);
+    zfract = SHAPE(zfract);
+
     Real v_y0_z0 = _v[a_z0] + xfract*(_v[b_z0]-_v[a_z0]);
     Real v_y0_z1 = _v[a_z1] + xfract*(_v[b_z1]-_v[a_z1]);
     Real v_y0 = v_y0_z0 + zfract*(v_y0_z1-v_y0_z0);
@@ -213,8 +222,9 @@ struct PerlinGrid
 
 
 
+template<synfig::Real(*SHAPE)(const synfig::Real&)>
 inline Color
-PerlinNoise::color_func(const PerlinGrid& grid, const Point& point, Real time, Context /*context*/)const
+PerlinNoise::color_func(const PerlinGrid<SHAPE>& grid, const Point& point, Real time, Context /*context*/)const
 {
   Vector p(point[0],point[1]);
   Real v = 0.0;
@@ -237,6 +247,8 @@ PerlinNoise::color_func(const PerlinGrid& grid, const Point& point, Real time, C
 	return ret;
 }
 
+synfig::Real f(const synfig::Real& x) { return x; };
+
 synfig::Layer::Handle
 PerlinNoise::hit_check(synfig::Context context, const synfig::Point &point)const
 {
@@ -250,7 +262,7 @@ PerlinNoise::hit_check(synfig::Context context, const synfig::Point &point)const
  	Real scale=param_scale.get(Real());
  	int seed=param_seed.get(int());
 
-  PerlinGrid grid(seed, scale, size);
+  PerlinGrid<f> grid(seed, scale, size);
 	if(color_func(grid, point, time, context).get_a()>0.5)
 		return const_cast<PerlinNoise*>(this);
 	return synfig::Layer::Handle();
@@ -376,7 +388,7 @@ PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, co
  	Real scale=param_scale.get(Real());
  	int seed=param_seed.get(int());
 
-  PerlinGrid grid(seed, scale, size);
+  PerlinGrid<> grid(seed, scale, size);
 
 	for(y=0,pos[1]=tl[1];y<h;y++,pen.inc_y(),pen.dec_x(x),pos[1]+=ph)
 		for(x=0,pos[0]=tl[0];x<w;x++,pen.inc_x(),pos[0]+=pw)
@@ -398,7 +410,7 @@ PerlinNoise::get_color(Context context, const Point &point)const
  	int seed=param_seed.get(int());
 
 
-  PerlinGrid grid(seed, scale, size);
+  PerlinGrid<> grid(seed, scale, size);
 
 	const Color color = color_func(grid, point, time, context);
 
