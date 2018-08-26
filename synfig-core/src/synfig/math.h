@@ -43,12 +43,28 @@ struct Test {
   static bool higher_half(const T& v) { return (v > (D::Min + D::Max)/2); }
 };
 
+/**
+ * ShapingFunction
+ */
 template <typename T, typename D = Domain<T>>
 struct ShapingFunction {
   static T linear(const T& v) { return v; }
 
-  template<bool (*TEST)(const T& v) = Test<T,D>::higher_half>
-  static T step(const T& v) { return TEST(v) ? D::Min : D::Max; }
+  template<bool (*Test)(const T& v) = Test<T,D>::higher_half>
+  static T step(const T& v) { return Test(v) ? D::Max : D::Min; }
+
+  static T smoothstep(const T& v) {
+    const T x = (v - D::Min)/(D::Max-D::Min);
+
+    return D::Min + (D::Max - D::Min) * x * x * (3.0 - 2.0 * x);
+  }
+
+  static T parabola(const T& v) {
+    const T x = (v - D::Min)/(D::Max-D::Min);
+
+    return D::Min + (D::Max - D::Min) * x * x;
+  }
+
 };
 
 

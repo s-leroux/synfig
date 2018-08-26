@@ -119,7 +119,7 @@ Real hash(const Vector3D& p)
 }
 
 //inline bool moreThanHalf(const double& v) { return v > 0.5; }
-template<Real (*SHAPE)(const Real&) = ShapingFunction<Real>::step>
+template<Real (*SHAPE)(const Real&) = ShapingFunction<Real>::parabola>
 //template<Real (*SHAPE)(const Real&) = ShapingFunction::linear>
 struct PerlinGrid
 {
