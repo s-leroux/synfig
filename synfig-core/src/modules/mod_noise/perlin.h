@@ -50,6 +50,8 @@ class PerlinNoise : public synfig::Layer_Composite
 private:
 	//!Parameter: (int)
 	synfig::ValueBase param_iterations;
+	//!Parameter: (Angle)
+	synfig::ValueBase param_rotation;
 	//!Parameter: (synfig::Real)
 	synfig::ValueBase param_time;
 	//!Parameter: (int)

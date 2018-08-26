@@ -68,6 +68,7 @@ PerlinNoise::PerlinNoise():
 	Layer_Composite(1.0,Color::BLEND_STRAIGHT),
 
 	param_iterations(ValueBase(int(2))),
+	param_rotation(ValueBase(Angle::deg(15))),
 	param_time(ValueBase(Real(0))),
 	param_size(ValueBase(int(10))),
   param_scale(ValueBase(Real(5.0))),
@@ -230,9 +231,11 @@ PerlinNoise::color_func(const PerlinGrid<SHAPE>& grid, const Point& point, Real 
   Real v = 0.0;
   Real a = 0.5;
   Vector shift(100.0, 100.0);
-  Angle r = Angle::deg(15);
+  //Angle r = Angle::deg(15);
 
  	int iterations=param_iterations.get(int());
+ 	Angle r=param_rotation.get(Angle());
+
   for (int i = 0; i < iterations; ++i) {
     v += a*grid.noise(p[0], p[1], time);
 
@@ -272,6 +275,7 @@ bool
 PerlinNoise::set_param(const String & param, const ValueBase &value)
 {
 	IMPORT_VALUE(param_iterations);
+	IMPORT_VALUE(param_rotation);
 	IMPORT_VALUE(param_time);
 
 	IMPORT_VALUE(param_displacement);
@@ -289,6 +293,7 @@ ValueBase
 PerlinNoise::get_param(const String & param)const
 {
 	EXPORT_VALUE(param_iterations);
+	EXPORT_VALUE(param_rotation);
 	EXPORT_VALUE(param_time);
 
 	EXPORT_VALUE(param_displacement);
@@ -315,6 +320,11 @@ PerlinNoise::get_param_vocab()const
 	ret.push_back(ParamDesc("iterations")
 		.set_local_name(_("Iterations"))
 		.set_description(_("Number of iterations (octave) applied"))
+	);
+
+	ret.push_back(ParamDesc("rotation")
+		.set_local_name(_("Rotation"))
+		.set_description(_("Rotation applied at each iteration"))
 	);
 
 	ret.push_back(ParamDesc("time")
