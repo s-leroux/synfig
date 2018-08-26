@@ -46,17 +46,19 @@ class PerlinNoise : public synfig::Layer_Composite
 	SYNFIG_LAYER_MODULE_EXT
 
 private:
+	//!Parameter: (int)
 	synfig::ValueBase param_iterations;
 	//!Parameter: (synfig::Real)
 	synfig::ValueBase param_time;
-	//!Parameter: (bool)
+	//!Parameter: (int)
+	synfig::ValueBase param_size;
+	//!Parameter: (synfig::Real)
+	synfig::ValueBase param_scale;
+	//!Parameter: (int)
+	synfig::ValueBase param_seed;
 
 	//!Parameter: (synfig::Vector)
 	synfig::ValueBase param_displacement;
-	//!Parameter: (synfig::Vector)
-	synfig::ValueBase param_size;
-	//!Parameter: (RandomNoise)
-	synfig::ValueBase param_random;
 	//!Parameter: (RandomNoise::SmoothType)
 	synfig::ValueBase param_smooth;
 	//!Parameter: (int)

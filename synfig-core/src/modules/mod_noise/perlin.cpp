@@ -68,10 +68,11 @@ PerlinNoise::PerlinNoise():
 
 	param_iterations(ValueBase(int(2))),
 	param_time(ValueBase(Real(0))),
+	param_size(ValueBase(int(10))),
+  param_scale(ValueBase(Real(5.0))),
+	param_seed(ValueBase(int(time(NULL)))),
 
   param_displacement(ValueBase(Vector(0.25,0.25))),
-	param_size(ValueBase(Vector(1,1))),
-	param_random(ValueBase(int(time(NULL)))),
 	param_smooth(ValueBase(int(RandomNoise::SMOOTH_COSINE))),
 	param_turbulent(bool(false))
 {
@@ -213,7 +214,7 @@ struct PerlinGrid
 
 
 inline Color
-PerlinNoise::color_func(const PerlinGrid& grid, const Point& point, Real time, Context context)const
+PerlinNoise::color_func(const PerlinGrid& grid, const Point& point, Real time, Context /*context*/)const
 {
   Vector p(point[0],point[1]);
   Real v = 0.0;
@@ -245,7 +246,11 @@ PerlinNoise::hit_check(synfig::Context context, const synfig::Point &point)const
 		return context.hit_check(point);
 
  	Real time=param_time.get(Real());
-  PerlinGrid grid(0, 5.0, 10);
+ 	int size=param_size.get(int());
+ 	Real scale=param_scale.get(Real());
+ 	int seed=param_seed.get(int());
+
+  PerlinGrid grid(seed, scale, size);
 	if(color_func(grid, point, time, context).get_a()>0.5)
 		return const_cast<PerlinNoise*>(this);
 	return synfig::Layer::Handle();
@@ -259,7 +264,8 @@ PerlinNoise::set_param(const String & param, const ValueBase &value)
 
 	IMPORT_VALUE(param_displacement);
 	IMPORT_VALUE(param_size);
-	IMPORT_VALUE(param_random);
+	IMPORT_VALUE(param_scale);
+	IMPORT_VALUE(param_seed);
 	IMPORT_VALUE(param_smooth);
 	IMPORT_VALUE(param_turbulent);
 	if(param=="seed")
@@ -275,7 +281,8 @@ PerlinNoise::get_param(const String & param)const
 
 	EXPORT_VALUE(param_displacement);
 	EXPORT_VALUE(param_size);
-	EXPORT_VALUE(param_random);
+	EXPORT_VALUE(param_scale);
+	EXPORT_VALUE(param_seed);
 	EXPORT_VALUE(param_smooth);
 	EXPORT_VALUE(param_turbulent);
 
@@ -297,9 +304,25 @@ PerlinNoise::get_param_vocab()const
 		.set_local_name(_("Iterations"))
 		.set_description(_("Number of iterations (octave) applied"))
 	);
+
 	ret.push_back(ParamDesc("time")
 		.set_local_name(_("Time (z-axis position)"))
 		.set_description(_("In arbitrary units"))
+	);
+
+	ret.push_back(ParamDesc("size")
+		.set_local_name(_("Size"))
+		.set_description(_("Grid size (O^3 memory size: use a small value!)"))
+	);
+
+	ret.push_back(ParamDesc("scale")
+		.set_local_name(_("Scale"))
+		.set_description(_("The grid scale"))
+	);
+
+	ret.push_back(ParamDesc("seed")
+		.set_local_name(_("Random Noise Seed"))
+		.set_description(_("Change to modify the random seed of the noise"))
 	);
 
 	ret.push_back(ParamDesc("displacement")
@@ -307,14 +330,6 @@ PerlinNoise::get_param_vocab()const
 		.set_description(_("How big the distortion displaces the context"))
 	);
 
-	ret.push_back(ParamDesc("size")
-		.set_local_name(_("Size"))
-		.set_description(_("The distance between distortions"))
-	);
-	ret.push_back(ParamDesc("seed")
-		.set_local_name(_("RandomNoise Seed"))
-		.set_description(_("Change to modify the random seed of the noise"))
-	);
 	ret.push_back(ParamDesc("smooth")
 		.set_local_name(_("Interpolation"))
 		.set_description(_("What type of interpolation to use"))
@@ -357,7 +372,11 @@ PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, co
 
 
  	Real time=param_time.get(Real());
-  PerlinGrid grid(0, 5.0, 10);
+ 	int size=param_size.get(int());
+ 	Real scale=param_scale.get(Real());
+ 	int seed=param_seed.get(int());
+
+  PerlinGrid grid(seed, scale, size);
 
 	for(y=0,pos[1]=tl[1];y<h;y++,pen.inc_y(),pen.dec_x(x),pos[1]+=ph)
 		for(x=0,pos[0]=tl[0];x<w;x++,pen.inc_x(),pos[0]+=pw)
@@ -374,7 +393,12 @@ Color
 PerlinNoise::get_color(Context context, const Point &point)const
 {
  	Real time=param_time.get(Real());
-  PerlinGrid grid(0, 5.0, 10);
+ 	int size=param_size.get(int());
+ 	Real scale=param_scale.get(Real());
+ 	int seed=param_seed.get(int());
+
+
+  PerlinGrid grid(seed, scale, size);
 
 	const Color color = color_func(grid, point, time, context);
 
