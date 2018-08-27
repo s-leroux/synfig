@@ -227,18 +227,21 @@ struct PerlinGrid
     Real a = 0.5;
     Vector shift(100.0, 100.0);
 
+    Real m = 0.0;
+
     for (int i = 0; i < iterations; ++i) {
       v += a*noise(p[0], p[1], time);
+      m += a;
 
       a = a*0.5;
       p = p.rotate(angle)*2.0 + shift;
       time = time *2.0+100.0;
     }
 
-  	Color ret = Color::white()*v;
+    Color ret = Color::white()*(v/m);
     ret.set_alpha(1.0);
   //	ret=context.get_color(point_func(point));
-  	return ret;
+    return ret;
   }
 };
 
