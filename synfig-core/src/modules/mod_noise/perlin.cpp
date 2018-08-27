@@ -124,7 +124,7 @@ Real sum(const Real & a, const Real& b) { return a+b; }
 Real prod(const Real & a, const Real& b) { return 1-(1-a)*(1-b); }
 Real turbulence(const Real & n) { return 2*abs(n-0.5); }
 //inline bool moreThanHalf(const double& v) { return v > 0.5; }
-template<Real (*SHAPE)(const Real&) /*= ShapingFunction<Real>::parabola*/>
+template<Real (*SHAPE)(const Real&)>
 //template<Real (*SHAPE)(const Real&) = ShapingFunction::linear>
 struct PerlinGrid
 {
@@ -223,8 +223,44 @@ struct PerlinGrid
     return v;
   }
 
-  template<Real (*REDUCER)(const Real&, const Real&) = prod, Real (*MAPPER)(const Real&) = ShapingFunction<Real>::linear>
-  inline Color color_func(int iterations, const Angle& angle, const Point& point, Real time, Context /*context*/)const
+};
+
+class NoiseGenerator
+{
+public:
+  virtual Real noise(Real x, Real y, Real z) const = 0;
+};
+
+template<Real (*SHAPE)(const Real&)>
+struct NoiseGeneratorAdaptor : public NoiseGenerator {
+  PerlinGrid<SHAPE> _grid;
+
+  NoiseGeneratorAdaptor(int seed, Real scale, int width)
+    : _grid(seed, scale, width) {}
+
+  virtual Real noise(Real x, Real y, Real z) const
+  {
+    return _grid.noise(x,y,z);
+  }
+};
+
+
+class ColorFunc
+{
+public:
+  virtual Color get(int iterations, const Angle& angle, const Point& point, Real time, Context /*context*/)const = 0;
+
+  static std::unique_ptr<ColorFunc> make(int interpolation,int seed, Real scale, int width);
+};
+
+template<Real (*REDUCER)(const Real&, const Real&) = prod, Real (*MAPPER)(const Real&) = ShapingFunction<Real>::linear>
+struct ColorFuncAdaptor : public ColorFunc {
+  unique_ptr<NoiseGenerator>  _generator;
+
+  ColorFuncAdaptor(unique_ptr<NoiseGenerator>&& generator)
+    : _generator(std::move(generator)) {}
+
+  virtual Color get(int iterations, const Angle& angle, const Point& point, Real time, Context /*context*/)const
   {
     Vector p(point[0],point[1]);
     Real v = 0.0;
@@ -234,7 +270,7 @@ struct PerlinGrid
     Real m = 0.0;
 
     for (int i = 0; i < iterations; ++i) {
-      v = REDUCER(v,a*MAPPER(noise(p[0], p[1], time)));
+      v = REDUCER(v,a*MAPPER(_generator->noise(p[0], p[1], time)));
       m = REDUCER(m,a);
 
       a = a*0.5;
@@ -249,54 +285,33 @@ struct PerlinGrid
   }
 };
 
-
-
-
-class ColorFunc
-{
-public:
-  virtual Color get(int iterations, const Angle& angle, const Point& point, Real time, Context /*context*/)const = 0;
-
-  static std::unique_ptr<ColorFunc> make(int interpolation,int seed, Real scale, int width);
-};
-
-template<Real (*SHAPE)(const Real&)>
-struct ColorFuncAdaptor : public ColorFunc {
-  PerlinGrid<SHAPE> _grid;
-
-  ColorFuncAdaptor(int seed, Real scale, int width)
-    : _grid(seed, scale, width) {}
-
-  virtual Color get(int iterations, const Angle& angle, const Point& point, Real time, Context context) const
-  {
-    return _grid.color_func(iterations, angle, point, time, context);
-  }
-};
-
-
 std::unique_ptr<ColorFunc> ColorFunc::make(int interpolation, int seed, Real scale, int width)
 {
-  ColorFunc *result;
+  NoiseGenerator *ng;
 
   switch (interpolation) {
     case PerlinNoise::SHAPE_STEP:
-      result = new ColorFuncAdaptor<ShapingFunction<Real>::step>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::step>(seed, scale, width);
       break;
     case PerlinNoise::SHAPE_CUBIC:
-      result = new ColorFuncAdaptor<ShapingFunction<Real>::cubic>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::cubic>(seed, scale, width);
       break;
     case PerlinNoise::SHAPE_SMOOTHSTEP:
-      result = new ColorFuncAdaptor<ShapingFunction<Real>::smoothstep>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::smoothstep>(seed, scale, width);
       break;
     case PerlinNoise::SHAPE_ATAN:
-      result = new ColorFuncAdaptor<ShapingFunction<Real>::atan>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::atan>(seed, scale, width);
       break;
     case PerlinNoise::SHAPE_LINEAR:
     default:
-      result = new ColorFuncAdaptor<ShapingFunction<Real>::linear>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::linear>(seed, scale, width);
   }
 
-  return std::unique_ptr<ColorFunc>(result);
+  ColorFunc *cf;
+
+  cf = new ColorFuncAdaptor<>(unique_ptr<NoiseGenerator>(ng));
+
+  return std::unique_ptr<ColorFunc>(cf);
 }
 
 
