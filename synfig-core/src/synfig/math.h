@@ -77,6 +77,10 @@ struct ShapingFunction {
     return D::Min + (D::Max - D::Min) * x * x;
   }
 
+  static T abs(const T& v) {
+    return D::Min + 2*fabs(v - (D::Max+D::Min)/2);
+  }
+
 };
 
 

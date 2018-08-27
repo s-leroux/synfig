@@ -68,9 +68,12 @@ SYNFIG_LAYER_SET_CVS_ID(PerlinNoise,"$Id$");
 PerlinNoise::PerlinNoise():
 	Layer_Composite(1.0,Color::BLEND_STRAIGHT),
 
-	param_interpolation(ValueBase(int(SHAPE_LINEAR))),
+	param_interpolation(ValueBase(int(INTERPOLATION_LINEAR))),
 	param_iterations(ValueBase(int(2))),
 	param_rotation(ValueBase(Angle::deg(15))),
+	param_gain(ValueBase(Real(0.5))),
+	param_lacunarity(ValueBase(Real(2.0))),
+	param_shape(ValueBase(int(SHAPE_LINEAR))),
 	param_time(ValueBase(Real(0))),
 	param_size(ValueBase(int(10))),
   param_scale(ValueBase(Real(5.0))),
@@ -120,9 +123,6 @@ Real hash(const Vector3D& p)
   return result;
 }
 
-Real sum(const Real & a, const Real& b) { return a+b; }
-Real prod(const Real & a, const Real& b) { return 1-(1-a)*(1-b); }
-Real turbulence(const Real & n) { return 2*abs(n-0.5); }
 //inline bool moreThanHalf(const double& v) { return v > 0.5; }
 template<Real (*SHAPE)(const Real&)>
 //template<Real (*SHAPE)(const Real&) = ShapingFunction::linear>
@@ -245,22 +245,26 @@ struct NoiseGeneratorAdaptor : public NoiseGenerator {
 };
 
 
+Real sum(const Real & a, const Real& b) { return a+b; }
+Real prod(const Real & a, const Real& b) { return 1-(1-a)*(1-b); }
+Real turbulence(const Real & n) { return 2*abs(n-0.5); }
+
 class ColorFunc
 {
 public:
-  virtual Color get(int iterations, const Angle& angle, const Point& point, Real time, Context /*context*/)const = 0;
+  virtual Color get(int iterations, Real gain, Real lacunarity, const Angle& angle, const Point& point, Real time, Context /*context*/)const = 0;
 
-  static std::unique_ptr<ColorFunc> make(int interpolation,int seed, Real scale, int width);
+  static std::unique_ptr<ColorFunc> make(int interpolation, int shape, int seed, Real scale, int width);
 };
 
-template<Real (*REDUCER)(const Real&, const Real&) = prod, Real (*MAPPER)(const Real&) = ShapingFunction<Real>::linear>
+template<Real (*REDUCER)(const Real&, const Real&) = sum, Real (*MAPPER)(const Real&) = ShapingFunction<Real>::linear>
 struct ColorFuncAdaptor : public ColorFunc {
   unique_ptr<NoiseGenerator>  _generator;
 
   ColorFuncAdaptor(unique_ptr<NoiseGenerator>&& generator)
     : _generator(std::move(generator)) {}
 
-  virtual Color get(int iterations, const Angle& angle, const Point& point, Real time, Context /*context*/)const
+  virtual Color get(int iterations, Real gain, Real lacunarity, const Angle& angle, const Point& point, Real time, Context /*context*/)const
   {
     Vector p(point[0],point[1]);
     Real v = 0.0;
@@ -273,9 +277,9 @@ struct ColorFuncAdaptor : public ColorFunc {
       v = REDUCER(v,a*MAPPER(_generator->noise(p[0], p[1], time)));
       m = REDUCER(m,a);
 
-      a = a*0.5;
-      p = p.rotate(angle)*2.0 + shift;
-      time = time *2.0+100.0;
+      a = a*gain;
+      p = p.rotate(angle)*lacunarity + shift;
+      time = time *lacunarity+100.0;
     }
 
     Color ret = Color::white()*(v/m);
@@ -285,31 +289,38 @@ struct ColorFuncAdaptor : public ColorFunc {
   }
 };
 
-std::unique_ptr<ColorFunc> ColorFunc::make(int interpolation, int seed, Real scale, int width)
+std::unique_ptr<ColorFunc> ColorFunc::make(int interpolation, int shape, int seed, Real scale, int width)
 {
   NoiseGenerator *ng;
 
   switch (interpolation) {
-    case PerlinNoise::SHAPE_STEP:
+    case PerlinNoise::INTERPOLATION_STEP:
       ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::step>(seed, scale, width);
       break;
-    case PerlinNoise::SHAPE_CUBIC:
+    case PerlinNoise::INTERPOLATION_CUBIC:
       ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::cubic>(seed, scale, width);
       break;
-    case PerlinNoise::SHAPE_SMOOTHSTEP:
+    case PerlinNoise::INTERPOLATION_SMOOTHSTEP:
       ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::smoothstep>(seed, scale, width);
       break;
-    case PerlinNoise::SHAPE_ATAN:
+    case PerlinNoise::INTERPOLATION_ATAN:
       ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::atan>(seed, scale, width);
       break;
-    case PerlinNoise::SHAPE_LINEAR:
+    case PerlinNoise::INTERPOLATION_LINEAR:
     default:
       ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::linear>(seed, scale, width);
   }
 
   ColorFunc *cf;
-
-  cf = new ColorFuncAdaptor<>(unique_ptr<NoiseGenerator>(ng));
+  switch (shape) {
+    case PerlinNoise::SHAPE_ABS:
+      cf = new ColorFuncAdaptor<sum, ShapingFunction<Real>::abs>(unique_ptr<NoiseGenerator>(ng));
+      break;
+    default:
+    case PerlinNoise::SHAPE_LINEAR:
+      cf = new ColorFuncAdaptor<sum, ShapingFunction<Real>::linear>(unique_ptr<NoiseGenerator>(ng));
+      break;
+  }
 
   return std::unique_ptr<ColorFunc>(cf);
 }
@@ -331,10 +342,13 @@ PerlinNoise::hit_check(synfig::Context context, const synfig::Point &point)const
  	int seed=param_seed.get(int());
 
  	int iterations=param_iterations.get(int());
+ 	int shape=param_shape.get(int());
  	Angle angle=param_rotation.get(Angle());
+ 	Real gain=param_gain.get(Real());
+ 	Real lacunarity=param_lacunarity.get(Real());
 
-  auto color = ColorFunc::make(interpolation, seed, scale, size);
-	if(color->get(iterations, angle, point, time, context).get_a()>0.5)
+  auto color = ColorFunc::make(interpolation, shape, seed, scale, size);
+	if(color->get(iterations, gain, lacunarity, angle, point, time, context).get_a()>0.5)
 		return const_cast<PerlinNoise*>(this);
 	return synfig::Layer::Handle();
 }
@@ -345,6 +359,9 @@ PerlinNoise::set_param(const String & param, const ValueBase &value)
 	IMPORT_VALUE(param_interpolation);
 	IMPORT_VALUE(param_iterations);
 	IMPORT_VALUE(param_rotation);
+	IMPORT_VALUE(param_gain);
+	IMPORT_VALUE(param_lacunarity);
+	IMPORT_VALUE(param_shape);
 	IMPORT_VALUE(param_time);
 
 	IMPORT_VALUE(param_displacement);
@@ -364,6 +381,9 @@ PerlinNoise::get_param(const String & param)const
 	EXPORT_VALUE(param_interpolation);
 	EXPORT_VALUE(param_iterations);
 	EXPORT_VALUE(param_rotation);
+	EXPORT_VALUE(param_gain);
+	EXPORT_VALUE(param_lacunarity);
+	EXPORT_VALUE(param_shape);
 	EXPORT_VALUE(param_time);
 
 	EXPORT_VALUE(param_displacement);
@@ -391,11 +411,11 @@ PerlinNoise::get_param_vocab()const
 		.set_local_name(_("Interpolation"))
 		.set_description(_("What type of interpolation to use"))
 		.set_hint("enum")
-		.add_enum_value(SHAPE_LINEAR,	"linear",	_("Linear"))
-		.add_enum_value(SHAPE_CUBIC,	"cubic",	_("Cubic"))
-		.add_enum_value(SHAPE_STEP,	"step",	_("Step"))
-		.add_enum_value(SHAPE_SMOOTHSTEP,	"smoothstep",	_("Smooth Step"))
-		.add_enum_value(SHAPE_ATAN,	"atan",	_("Arctangent"))
+		.add_enum_value(INTERPOLATION_LINEAR,	"linear",	_("Linear"))
+		.add_enum_value(INTERPOLATION_CUBIC,	"cubic",	_("Cubic"))
+		.add_enum_value(INTERPOLATION_STEP,	"step",	_("Step"))
+		.add_enum_value(INTERPOLATION_SMOOTHSTEP,	"smoothstep",	_("Smooth Step"))
+		.add_enum_value(INTERPOLATION_ATAN,	"atan",	_("Arctangent"))
 	);
 
 	ret.push_back(ParamDesc("iterations")
@@ -406,6 +426,24 @@ PerlinNoise::get_param_vocab()const
 	ret.push_back(ParamDesc("rotation")
 		.set_local_name(_("Rotation"))
 		.set_description(_("Rotation applied at each iteration"))
+	);
+
+	ret.push_back(ParamDesc("gain")
+		.set_local_name(_("Gain"))
+		.set_description(_("Gain for each octave (usually < 1.0)"))
+	);
+
+	ret.push_back(ParamDesc("lacunarity")
+		.set_local_name(_("Lacunarity"))
+		.set_description(_("Frequence ratio between two consecutive octaves (usually 2.0)"))
+	);
+
+	ret.push_back(ParamDesc("shape")
+		.set_local_name(_("Shape"))
+		.set_description(_("Noise shaping function"))
+		.set_hint("enum")
+		.add_enum_value(SHAPE_LINEAR,	"linear",	_("Linear"))
+		.add_enum_value(SHAPE_ABS,	"abs",	_("Abs"))
 	);
 
 	ret.push_back(ParamDesc("time")
@@ -482,13 +520,17 @@ PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, co
  	int seed=param_seed.get(int());
 
  	int iterations=param_iterations.get(int());
- 	Angle angle=param_rotation.get(Angle());
+ 	int shape=param_shape.get(int());
 
-  auto color = ColorFunc::make(interpolation, seed, scale, size);
+ 	Angle angle=param_rotation.get(Angle());
+ 	Real gain=param_gain.get(Real());
+ 	Real lacunarity=param_lacunarity.get(Real());
+
+  auto color = ColorFunc::make(interpolation, shape, seed, scale, size);
 
 	for(y=0,pos[1]=tl[1];y<h;y++,pen.inc_y(),pen.dec_x(x),pos[1]+=ph)
 		for(x=0,pos[0]=tl[0];x<w;x++,pen.inc_x(),pos[0]+=pw)
-			pen.put_value(color->get(iterations, angle, pos, time, context));
+			pen.put_value(color->get(iterations, gain, lacunarity, angle, pos, time, context));
 
 	// Mark our progress as finished
 	if(cb && !cb->amount_complete(10000,10000))
@@ -508,9 +550,13 @@ PerlinNoise::get_color(Context context, const Point &point)const
  	int seed=param_seed.get(int());
 
  	int iterations=param_iterations.get(int());
- 	Angle angle=param_rotation.get(Angle());
+ 	int shape=param_shape.get(int());
 
-  auto color = ColorFunc::make(interpolation, seed, scale, size)->get(iterations, angle, point, time, context);
+ 	Angle angle=param_rotation.get(Angle());
+ 	Real gain=param_gain.get(Real());
+ 	Real lacunarity=param_lacunarity.get(Real());
+
+  auto color = ColorFunc::make(interpolation, shape, seed, scale, size)->get(iterations, gain, lacunarity, angle, point, time, context);
 
 	if(get_amount()==1.0 && get_blend_method()==Color::BLEND_STRAIGHT)
 		return color;

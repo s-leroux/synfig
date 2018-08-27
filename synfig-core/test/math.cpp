@@ -84,6 +84,23 @@ TEST(ShapingFunction, Smoothstep)
   EXPECT_NEAR(ShapingFunction<double>::smoothstep(1.0), 1.0, epsilon);
 }
 
+struct D {
+  static constexpr const double Min = 3.0;
+  static constexpr const double Max = 5.0;
+};
+
+TEST(ShapingFunction, Abs)
+{
+  EXPECT_NEAR(ShapingFunction<double>::abs(0.0), 1.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::abs(0.5), 0.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::abs(1.0), 1.0, epsilon);
+
+
+  EXPECT_NEAR((ShapingFunction<double, D>::abs(3.0)), D::Max, epsilon);
+  EXPECT_NEAR((ShapingFunction<double, D>::abs(4.0)), D::Min, epsilon);
+  EXPECT_NEAR((ShapingFunction<double, D>::abs(5.0)), D::Max, epsilon);
+}
+
 TEST(ShapingFunction, Parabola)
 {
   EXPECT_NEAR(ShapingFunction<double>::parabola(0.0), 0.0, epsilon);

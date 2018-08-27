@@ -55,6 +55,12 @@ private:
 	//!Parameter: (Angle)
 	synfig::ValueBase param_rotation;
 	//!Parameter: (synfig::Real)
+	synfig::ValueBase param_gain;
+	//!Parameter: (synfig::Real)
+	synfig::ValueBase param_lacunarity;
+	//!Parameter: (int)
+	synfig::ValueBase param_shape;
+	//!Parameter: (synfig::Real)
 	synfig::ValueBase param_time;
 	//!Parameter: (int)
 	synfig::ValueBase param_size;
@@ -76,14 +82,20 @@ private:
 public:
 	PerlinNoise();
 
-	enum ShapeType
+	enum InterpolationType
 	{
-		SHAPE_LINEAR		        = 0,
-		SHAPE_CUBIC		          = 1,
-		SHAPE_STEP		          = 10,
-		SHAPE_SMOOTHSTEP		    = 11,
-		SHAPE_ATAN      		    = 20,
+		INTERPOLATION_LINEAR		        = 0,
+		INTERPOLATION_CUBIC		          = 1,
+		INTERPOLATION_STEP		          = 10,
+		INTERPOLATION_SMOOTHSTEP		    = 11,
+		INTERPOLATION_ATAN      		    = 20,
 	};
+
+  enum
+  {
+    SHAPE_LINEAR                    = 0,
+    SHAPE_ABS                       = 1,
+  };
 
 
 	virtual bool set_param(const synfig::String &param, const synfig::ValueBase &value);
