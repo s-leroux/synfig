@@ -49,6 +49,8 @@ class PerlinNoise : public synfig::Layer_Composite
 
 private:
 	//!Parameter: (int)
+	synfig::ValueBase param_interpolation;
+	//!Parameter: (int)
 	synfig::ValueBase param_iterations;
 	//!Parameter: (Angle)
 	synfig::ValueBase param_rotation;
@@ -71,14 +73,18 @@ private:
 	//void sync();
 	mutable synfig::Time curr_time;
 
-  template<synfig::Real(* S)(const synfig::Real&)>
-	synfig::Color color_func(const PerlinGrid<S>& grid, const synfig::Point &x, synfig::Real time, synfig::Context context)const;
-//	synfig::Point point_func(const synfig::Point &point)const;
-
-//	float calc_supersample(const synfig::Point &x, float pw,float ph)const;
-
 public:
 	PerlinNoise();
+
+	enum ShapeType
+	{
+		SHAPE_LINEAR		        = 0,
+		SHAPE_CUBIC		          = 1,
+		SHAPE_STEP		          = 10,
+		SHAPE_SMOOTHSTEP		    = 11,
+		SHAPE_ATAN      		    = 20,
+	};
+
 
 	virtual bool set_param(const synfig::String &param, const synfig::ValueBase &value);
 	virtual synfig::ValueBase get_param(const synfig::String &param)const;

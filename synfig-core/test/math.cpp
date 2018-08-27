@@ -57,6 +57,20 @@ TEST(ShapingFunction, Linear)
   EXPECT_NEAR(ShapingFunction<double>::linear(1.0), 1.0, epsilon);
 }
 
+TEST(ShapingFunction, Cubic)
+{
+  EXPECT_NEAR(ShapingFunction<double>::cubic(0.0), 0.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::cubic(0.5), 0.5, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::cubic(1.0), 1.0, epsilon);
+}
+
+TEST(ShapingFunction, Atan)
+{
+  EXPECT_NEAR(ShapingFunction<double>::atan(0.0), 0.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::atan(0.5), 0.5, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::atan(1.0), 1.0, epsilon);
+}
+
 TEST(ShapingFunction, Step)
 {
   EXPECT_NEAR(ShapingFunction<double>::step(0.0), 0.0, epsilon);

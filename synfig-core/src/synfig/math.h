@@ -50,6 +50,18 @@ template <typename T, typename D = Domain<T>>
 struct ShapingFunction {
   static T linear(const T& v) { return v; }
 
+  static T cubic(const T& v) {
+    const T x = 2*(v - D::Min)/(D::Max-D::Min)-1;
+
+    return D::Min + (D::Max - D::Min) * (x * x * x + 1) / 2;
+  }
+
+  static T atan(const T& v) {
+    const T x = 2*(v - D::Min)/(D::Max-D::Min)-1;
+
+    return D::Min + (D::Max - D::Min) * (::atan(4 * x)/::atan(4) + 1) / 2;
+  }
+
   template<bool (*Test)(const T& v) = Test<T,D>::higher_half>
   static T step(const T& v) { return Test(v) ? D::Max : D::Min; }
 

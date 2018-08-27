@@ -42,6 +42,7 @@
 #include <synfig/math.h>
 #include <time.h>
 #include <random>
+#include <memory>
 
 #endif
 
@@ -67,6 +68,7 @@ SYNFIG_LAYER_SET_CVS_ID(PerlinNoise,"$Id$");
 PerlinNoise::PerlinNoise():
 	Layer_Composite(1.0,Color::BLEND_STRAIGHT),
 
+	param_interpolation(ValueBase(int(SHAPE_LINEAR))),
 	param_iterations(ValueBase(int(2))),
 	param_rotation(ValueBase(Angle::deg(15))),
 	param_time(ValueBase(Real(0))),
@@ -119,7 +121,7 @@ Real hash(const Vector3D& p)
 }
 
 //inline bool moreThanHalf(const double& v) { return v > 0.5; }
-template<Real (*SHAPE)(const Real&) = ShapingFunction<Real>::parabola>
+template<Real (*SHAPE)(const Real&) /*= ShapingFunction<Real>::parabola*/>
 //template<Real (*SHAPE)(const Real&) = ShapingFunction::linear>
 struct PerlinGrid
 {
@@ -218,39 +220,75 @@ struct PerlinGrid
     return v;
   }
 
+  inline Color color_func(int iterations, const Angle& angle, const Point& point, Real time, Context /*context*/)const
+  {
+    Vector p(point[0],point[1]);
+    Real v = 0.0;
+    Real a = 0.5;
+    Vector shift(100.0, 100.0);
 
+    for (int i = 0; i < iterations; ++i) {
+      v += a*noise(p[0], p[1], time);
+
+      a = a*0.5;
+      p = p.rotate(angle)*2.0 + shift;
+      time = time *2.0+100.0;
+    }
+
+  	Color ret = Color::white()*v;
+    ret.set_alpha(1.0);
+  //	ret=context.get_color(point_func(point));
+  	return ret;
+  }
+};
+
+class ColorFunc
+{
+public:
+  virtual Color get(int iterations, const Angle& angle, const Point& point, Real time, Context /*context*/)const = 0;
+
+  static std::unique_ptr<ColorFunc> make(int interpolation,int seed, Real scale, int width);
+};
+
+template<Real (*SHAPE)(const Real&)>
+struct ColorFuncAdaptor : public ColorFunc {
+  PerlinGrid<SHAPE> _grid;
+
+  ColorFuncAdaptor(int seed, Real scale, int width)
+    : _grid(seed, scale, width) {}
+
+  virtual Color get(int iterations, const Angle& angle, const Point& point, Real time, Context context) const
+  {
+    return _grid.color_func(iterations, angle, point, time, context);
+  }
 };
 
 
-
-template<synfig::Real(*SHAPE)(const synfig::Real&)>
-inline Color
-PerlinNoise::color_func(const PerlinGrid<SHAPE>& grid, const Point& point, Real time, Context /*context*/)const
+std::unique_ptr<ColorFunc> ColorFunc::make(int interpolation, int seed, Real scale, int width)
 {
-  Vector p(point[0],point[1]);
-  Real v = 0.0;
-  Real a = 0.5;
-  Vector shift(100.0, 100.0);
-  //Angle r = Angle::deg(15);
+  ColorFunc *result;
 
- 	int iterations=param_iterations.get(int());
- 	Angle r=param_rotation.get(Angle());
-
-  for (int i = 0; i < iterations; ++i) {
-    v += a*grid.noise(p[0], p[1], time);
-
-    a = a*0.5;
-    p = p.rotate(r)*2.0 + shift;
-    time = time *2.0+100.0;
+  switch (interpolation) {
+    case PerlinNoise::SHAPE_STEP:
+      result = new ColorFuncAdaptor<ShapingFunction<Real>::step>(seed, scale, width);
+      break;
+    case PerlinNoise::SHAPE_CUBIC:
+      result = new ColorFuncAdaptor<ShapingFunction<Real>::cubic>(seed, scale, width);
+      break;
+    case PerlinNoise::SHAPE_SMOOTHSTEP:
+      result = new ColorFuncAdaptor<ShapingFunction<Real>::smoothstep>(seed, scale, width);
+      break;
+    case PerlinNoise::SHAPE_ATAN:
+      result = new ColorFuncAdaptor<ShapingFunction<Real>::atan>(seed, scale, width);
+      break;
+    case PerlinNoise::SHAPE_LINEAR:
+    default:
+      result = new ColorFuncAdaptor<ShapingFunction<Real>::linear>(seed, scale, width);
   }
 
-	Color ret = Color::white()*v;
-  ret.set_alpha(1.0);
-//	ret=context.get_color(point_func(point));
-	return ret;
+  return std::unique_ptr<ColorFunc>(result);
 }
 
-synfig::Real f(const synfig::Real& x) { return x; };
 
 synfig::Layer::Handle
 PerlinNoise::hit_check(synfig::Context context, const synfig::Point &point)const
@@ -260,13 +298,18 @@ PerlinNoise::hit_check(synfig::Context context, const synfig::Point &point)const
 	if(get_amount()==0.0)
 		return context.hit_check(point);
 
+ 	int interpolation=param_interpolation.get(int());
+
  	Real time=param_time.get(Real());
  	int size=param_size.get(int());
  	Real scale=param_scale.get(Real());
  	int seed=param_seed.get(int());
 
-  PerlinGrid<f> grid(seed, scale, size);
-	if(color_func(grid, point, time, context).get_a()>0.5)
+ 	int iterations=param_iterations.get(int());
+ 	Angle angle=param_rotation.get(Angle());
+
+  auto color = ColorFunc::make(interpolation, seed, scale, size);
+	if(color->get(iterations, angle, point, time, context).get_a()>0.5)
 		return const_cast<PerlinNoise*>(this);
 	return synfig::Layer::Handle();
 }
@@ -274,6 +317,7 @@ PerlinNoise::hit_check(synfig::Context context, const synfig::Point &point)const
 bool
 PerlinNoise::set_param(const String & param, const ValueBase &value)
 {
+	IMPORT_VALUE(param_interpolation);
 	IMPORT_VALUE(param_iterations);
 	IMPORT_VALUE(param_rotation);
 	IMPORT_VALUE(param_time);
@@ -292,6 +336,7 @@ PerlinNoise::set_param(const String & param, const ValueBase &value)
 ValueBase
 PerlinNoise::get_param(const String & param)const
 {
+	EXPORT_VALUE(param_interpolation);
 	EXPORT_VALUE(param_iterations);
 	EXPORT_VALUE(param_rotation);
 	EXPORT_VALUE(param_time);
@@ -316,6 +361,17 @@ Layer::Vocab
 PerlinNoise::get_param_vocab()const
 {
 	Layer::Vocab ret(Layer_Composite::get_param_vocab());
+
+	ret.push_back(ParamDesc("interpolation")
+		.set_local_name(_("Interpolation"))
+		.set_description(_("What type of interpolation to use"))
+		.set_hint("enum")
+		.add_enum_value(SHAPE_LINEAR,	"linear",	_("Linear"))
+		.add_enum_value(SHAPE_CUBIC,	"cubic",	_("Cubic"))
+		.add_enum_value(SHAPE_STEP,	"step",	_("Step"))
+		.add_enum_value(SHAPE_SMOOTHSTEP,	"smoothstep",	_("Smooth Step"))
+		.add_enum_value(SHAPE_ATAN,	"atan",	_("Arctangent"))
+	);
 
 	ret.push_back(ParamDesc("iterations")
 		.set_local_name(_("Iterations"))
@@ -392,17 +448,22 @@ PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, co
 	const int w(surface->get_w());
 	const int h(surface->get_h());
 
+ 	int interpolation=param_interpolation.get(int());
 
  	Real time=param_time.get(Real());
  	int size=param_size.get(int());
  	Real scale=param_scale.get(Real());
+
  	int seed=param_seed.get(int());
 
-  PerlinGrid<> grid(seed, scale, size);
+ 	int iterations=param_iterations.get(int());
+ 	Angle angle=param_rotation.get(Angle());
+
+  auto color = ColorFunc::make(interpolation, seed, scale, size);
 
 	for(y=0,pos[1]=tl[1];y<h;y++,pen.inc_y(),pen.dec_x(x),pos[1]+=ph)
 		for(x=0,pos[0]=tl[0];x<w;x++,pen.inc_x(),pos[0]+=pw)
-			pen.put_value(color_func(grid, pos, time, context));
+			pen.put_value(color->get(iterations, angle, pos, time, context));
 
 	// Mark our progress as finished
 	if(cb && !cb->amount_complete(10000,10000))
@@ -414,15 +475,17 @@ PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, co
 Color
 PerlinNoise::get_color(Context context, const Point &point)const
 {
+ 	int interpolation=param_interpolation.get(int());
+
  	Real time=param_time.get(Real());
  	int size=param_size.get(int());
  	Real scale=param_scale.get(Real());
  	int seed=param_seed.get(int());
 
+ 	int iterations=param_iterations.get(int());
+ 	Angle angle=param_rotation.get(Angle());
 
-  PerlinGrid<> grid(seed, scale, size);
-
-	const Color color = color_func(grid, point, time, context);
+  auto color = ColorFunc::make(interpolation, seed, scale, size)->get(iterations, angle, point, time, context);
 
 	if(get_amount()==1.0 && get_blend_method()==Color::BLEND_STRAIGHT)
 		return color;
