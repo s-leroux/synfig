@@ -120,6 +120,9 @@ Real hash(const Vector3D& p)
   return result;
 }
 
+Real sum(const Real & a, const Real& b) { return a+b; }
+Real prod(const Real & a, const Real& b) { return 1-(1-a)*(1-b); }
+Real turbulence(const Real & n) { return 2*abs(n-0.5); }
 //inline bool moreThanHalf(const double& v) { return v > 0.5; }
 template<Real (*SHAPE)(const Real&) /*= ShapingFunction<Real>::parabola*/>
 //template<Real (*SHAPE)(const Real&) = ShapingFunction::linear>
@@ -220,6 +223,7 @@ struct PerlinGrid
     return v;
   }
 
+  template<Real (*REDUCER)(const Real&, const Real&) = prod, Real (*MAPPER)(const Real&) = ShapingFunction<Real>::linear>
   inline Color color_func(int iterations, const Angle& angle, const Point& point, Real time, Context /*context*/)const
   {
     Vector p(point[0],point[1]);
@@ -230,8 +234,8 @@ struct PerlinGrid
     Real m = 0.0;
 
     for (int i = 0; i < iterations; ++i) {
-      v += a*noise(p[0], p[1], time);
-      m += a;
+      v = REDUCER(v,a*MAPPER(noise(p[0], p[1], time)));
+      m = REDUCER(m,a);
 
       a = a*0.5;
       p = p.rotate(angle)*2.0 + shift;
@@ -244,6 +248,9 @@ struct PerlinGrid
     return ret;
   }
 };
+
+
+
 
 class ColorFunc
 {
