@@ -87,9 +87,6 @@ public:
 	bool is_valid()const { return !(isnan(_x) || isnan(_y)); }
 	bool is_nan_or_inf()const { return isnan(_x) || isnan(_y) || isinf(_x) || isinf(_y); }
 
-
-  static const unsigned int dim = 2;
-
 	value_type &
 	operator[](const int& i)
 	{ return i?_y:_x; }
@@ -143,8 +140,6 @@ public:
 	operator*(const value_type &rhs)const
 		{ return Vector(*this)*=rhs; }
 
-  friend Vector operator*(const value_type& v, const Vector &s) { return v*s; }
-
 	Vector
 	operator/(const value_type &rhs)const
 		{ return Vector(*this)/=rhs; }
@@ -172,15 +167,6 @@ public:
 	//! Returns the magnitude of the vector
 	value_type mag()const
 		{ return sqrt(mag_squared()); }
-
-	//! Return a new vector whose components are rounded to the nearest integer
-	//! lower than the actual value
-	Vector floor()const
-		{ return Vector(::floor(_x),::floor(_y)); }
-
-	//! Return a new vector made of the fractional parts of the individual components of the receiver
-	Vector fract()const
-		{ return Vector(_x-::floor(_x),_y-::floor(_y)); }
 
 	//! Returns the reciprocal of the magnitude of the vector
 	value_type inv_mag()const
@@ -233,296 +219,15 @@ public:
 */
 typedef Vector Point;
 
-/*!	\class VectorND
- *
- * A N dimension implementation with a semantic compatible with GLSL vec2/vec3/vec4
- *
- * Especially, here operator*() works component-wise and you must use the dot() function
- * to obtain the dot product.
- */
-template<unsigned int DIM>
-class VectorND {
-public:
-	typedef Real value_type;
-
-protected:
-	value_type _n[DIM];
-
-public:
-  typedef VectorND<DIM> Type;
-  static const unsigned int dimensions = DIM;
-
-  VectorND() : _n{} {}
-  explicit VectorND(value_type v) {
-      for(unsigned i = 0; i < DIM; ++i) _n[i] = v;
-  }
-
-  VectorND(const VectorND<DIM>& o) {
-      for(unsigned i = 0; i < DIM; ++i) _n[i] = o._n[i];
-  }
-
-  template<typename ... Tail>
-  VectorND(typename std::enable_if<sizeof...(Tail)+1 == DIM, value_type>::type head, Tail... tail)
-            : _n{ head, value_type(tail)... } {}
-
-  value_type operator[](unsigned int n) const {
-    return (n < DIM) ? _n[n] : 0.0;
-  }
-
-	bool
-	operator==(const Type &rhs)const
-		{
-      for(unsigned i = 0; i < DIM; ++i) if (_n[i] != rhs._n[i]) return false;
-      return true;
-    }
-
-	bool
-	operator!=(const Type &rhs)const
-		{ return !operator==(rhs); }
-
-
-	const Type &
-	operator+=(const Type &rhs)
-	{
-    for(unsigned i = 0; i < DIM; ++i) _n[i]+=rhs._n[i];
-		return *this;
-	}
-
-	Type
-	operator+(const Type &rhs) const {
-    Type result = *this;
-    return result += rhs;
-  }
-
-	const Type &
-	operator+=(const value_type &rhs)
-	{
-    for(unsigned i = 0; i < DIM; ++i) _n[i]+=rhs;
-		return *this;
-	}
-
-	Type
-	operator+(const value_type &rhs) const {
-    Type result = *this;
-    return result += rhs;
-  }
-
-	const Type &
-	operator-=(const Type &rhs)
-	{
-    for(unsigned i = 0; i < DIM; ++i) _n[i]-=rhs._n[i];
-		return *this;
-	}
-
-	Type
-	operator-(const Type &rhs) const {
-    Type result = *this;
-    return result -= rhs;
-  }
-
-	const Type &
-	operator-=(const value_type &rhs)
-	{
-    for(unsigned i = 0; i < DIM; ++i) _n[i]-=rhs;
-		return *this;
-	}
-
-	Type
-	operator-(const value_type &rhs) const {
-    Type result = *this;
-    return result -= rhs;
-  }
-
-	const Type &
-	operator*=(const Type &rhs)
-	{
-    for(unsigned i = 0; i < DIM; ++i) _n[i]*=rhs._n[i];
-		return *this;
-	}
-
-	Type
-	operator*(const Type &rhs) const {
-    Type result = *this;
-    return result *= rhs;
-  }
-
-	const Type &
-	operator*=(const value_type &rhs)
-	{
-    for(unsigned i = 0; i < DIM; ++i) _n[i]*=rhs;
-		return *this;
-	}
-
-	Type
-	operator*(const value_type &rhs) const {
-    Type result = *this;
-    return result *= rhs;
-  }
-
-	const Type &
-	operator/=(const Type &rhs)
-	{
-    for(unsigned i = 0; i < DIM; ++i) _n[i]/=rhs._n[i];
-		return *this;
-	}
-
-	Type
-	operator/(const Type &rhs) const {
-    Type result = *this;
-    return result /= rhs;
-  }
-
-	const Type &
-	operator/=(const value_type &rhs)
-	{
-    for(unsigned i = 0; i < DIM; ++i) _n[i]/=rhs;
-		return *this;
-	}
-
-	Type
-	operator/(const value_type &rhs) const {
-    Type result = *this;
-    return result /= rhs;
-  }
-
-  template<typename Op>
-  Type apply() const
-  {
-    Type result;
-    for(unsigned i = 0; i < DIM; ++i) result._n[i] = Op::apply(_n[i]);
-		return result;
-  }
-
-  template<typename Op>
-  Type apply(const synfig::VectorND<DIM>& o) const
-  {
-    Type result;
-    for(unsigned i = 0; i < DIM; ++i) result._n[i] = Op::apply(_n[i], o[i]);
-		return result;
-  }
-
-  template<typename Op>
-  Type apply(const synfig::VectorND<DIM>::value_type& o) const
-  {
-    Type result;
-    for(unsigned i = 0; i < DIM; ++i) result._n[i] = Op::apply(_n[i], o);
-		return result;
-  }
-
-};
-
-typedef VectorND<3> Vector3D;
-typedef VectorND<2> Vector2D;
 
 
 }; // END of namespace synfig
 
 namespace std {
 
-
-
-template<unsigned int N>
-inline synfig::VectorND<N> floor(const synfig::VectorND<N>& receiver) {
-  struct Op {
-    static double apply(const typename synfig::VectorND<N>::value_type& v) { return std::floor(v); }
-  };
-  return receiver.template apply<Op>();
-}
-
-template<unsigned int N>
-inline synfig::VectorND<N> fract(const synfig::VectorND<N>& receiver) {
-  struct Op {
-    static double apply(const typename synfig::VectorND<N>::value_type& v) { return v - std::floor(v); }
-  };
-  return receiver.template apply<Op>();
-}
-
-template<unsigned int N>
-inline synfig::VectorND<N> min(const synfig::VectorND<N>& receiver, const synfig::VectorND<N>& o) {
-  struct Op {
-    static double apply(const typename synfig::VectorND<N>::value_type& a,
-                        const typename synfig::VectorND<N>::value_type& b) { return (a < b) ? a : b; }
-  };
-  return receiver.template apply<Op>(o);
-}
-
-template<unsigned int N>
-inline synfig::VectorND<N> min(const synfig::VectorND<N>& receiver, const typename synfig::VectorND<N>::value_type& o) {
-  struct Op {
-    static double apply(const typename synfig::VectorND<N>::value_type& a,
-                        const typename synfig::VectorND<N>::value_type& b) { return (a < b) ? a : b; }
-  };
-  return receiver.template apply<Op>(o);
-}
-
-template<unsigned int N>
-inline synfig::VectorND<N> max(const synfig::VectorND<N>& receiver, const synfig::VectorND<N>& o) {
-  struct Op {
-    static double apply(const typename synfig::VectorND<N>::value_type& a,
-                        const typename synfig::VectorND<N>::value_type& b) { return (a > b) ? a : b; }
-  };
-  return receiver.template apply<Op>(o);
-}
-
-template<unsigned int N>
-inline synfig::VectorND<N> max(const synfig::VectorND<N>& receiver, const typename synfig::VectorND<N>::value_type& o) {
-  struct Op {
-    static double apply(const typename synfig::VectorND<N>::value_type& a,
-                        const typename synfig::VectorND<N>::value_type& b) { return (a > b) ? a : b; }
-  };
-  return receiver.template apply<Op>(o);
-}
-
-template<unsigned int N>
-inline synfig::VectorND<N> clamp(const synfig::VectorND<N>& x,
-                                 const synfig::VectorND<N>& minVal,
-                                 const synfig::VectorND<N>& maxVal) {
-  return min(max(x, minVal), maxVal);
-}
-
-template<unsigned int N>
-inline synfig::VectorND<N> clamp(const synfig::VectorND<N>& x,
-                                 const typename synfig::VectorND<N>::value_type& minVal,
-                                 const typename synfig::VectorND<N>::value_type& maxVal) {
-  return min(max(x, minVal), maxVal);
-}
-
-inline
-synfig::Vector2D rotate(const synfig::Vector2D& lhs, const synfig::Angle &rhs)
-	{
-		synfig::Vector2D::value_type s = synfig::Angle::sin(rhs).get();
-		synfig::Vector2D::value_type c = synfig::Angle::cos(rhs).get();
-		return synfig::Vector2D(c*lhs[0] - s*lhs[1], s*lhs[0] + c*lhs[1]);
-	}
-
-template<unsigned int N>
-inline typename synfig::VectorND<N>::value_type sum(const synfig::VectorND<N>& a) {
-  typename synfig::VectorND<N>::value_type result = 0.0;
-  for(unsigned i = 0; i < N; ++i) result += a[i];
-
-  return result;
-}
-
-template<unsigned int N>
-inline typename synfig::VectorND<N>::value_type dot(const synfig::VectorND<N>& a, const synfig::VectorND<N>& b) {
-  return sum(a*b);
-}
-
-
 inline synfig::Vector::value_type
 abs(const synfig::Vector &rhs)
 	{ return rhs.mag(); }
-
-inline synfig::Vector floor(const synfig::Vector& v)
-  { return v.floor(); }
-
-inline synfig::Vector fract(const synfig::Vector& v)
-  { return v.fract(); }
-
-inline synfig::Vector mix(const synfig::Vector & x,
-                          const synfig::Vector & y,
-                          synfig::Vector::value_type a)
-    { return x*(1-a)+y*a; }
 
 }; // END of namespace std
 

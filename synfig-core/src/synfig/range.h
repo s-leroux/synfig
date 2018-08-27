@@ -64,7 +64,7 @@ inline bool isinf(float x) { return !isnan(x) && isnan(x - x); }
 namespace synfig {
 
 /*!	\class Range
-**
+**	
 ** A semi-open range of values
 */
 class Range
@@ -106,12 +106,12 @@ public:
   {
     return Range(map(value._from, f2, t2), map(value._to, f2, t2));
   }
-
+  
   value_type map(const value_type& value, const Range& dest) const
   {
       return map(value, dest._from, dest._to);
   }
-
+  
   Range map(const Range& value, const Range& dest) const
   {
       return Range(map(value._from, dest), map(value._to, dest));
@@ -126,22 +126,31 @@ public:
   {
       return Range(unmap(value._from, f2, t2), unmap(value._to, f2, t2));
   }
-
+  
   value_type unmap(const value_type& value, const Range& dest) const
   {
       return unmap(value, dest._from, dest._to);
   }
-
+  
   Range unmap(const Range& value, const Range& dest) const
   {
       return Range(unmap(value._from, dest), unmap(value._to, dest));
   }
 
+
+  static value_type clamp(const value_type& value,
+                          const value_type& a, const value_type& b)
+  {
+      return (value < a) ? a :
+             (value > b) ? b :
+             value;
+  }
+  
   value_type clamp(const value_type& value) const
   {
-    return std::clamp(value, _from, _to);
+    return Range::clamp(value, _from, _to);
   }
-
+  
   Range clamp(const Range& value) const
   {
     return Range(clamp(value._from), clamp(value._to));

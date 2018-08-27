@@ -77,55 +77,13 @@ PerlinNoise::PerlinNoise():
 	param_time(ValueBase(Real(0))),
 	param_size(ValueBase(int(10))),
   param_scale(ValueBase(Real(5.0))),
-	param_seed(ValueBase(int(time(NULL)))),
-
-  param_displacement(ValueBase(Vector(0.25,0.25))),
-	param_smooth(ValueBase(int(RandomNoise::SMOOTH_COSINE))),
-	param_turbulent(bool(false))
+	param_seed(ValueBase(int(time(NULL))))
 {
 	SET_INTERPOLATION_DEFAULTS();
 	SET_STATIC_DEFAULTS();
 }
 
-/*
- * Based on https://thebookofshaders.com/13/
- */
-Real hash(const Vector& p)
-{
-  double result = fract(1e4 * sin(17.0 * p[0] + p[1] * 0.1) * (0.1 + abs(sin(p[1] * 13.0 + p[0]))));
-  //cerr << "hash: " << result << endl;
-
-  return result;
-}
-
-// 	<www.shadertoy.com/view/XsX3zB>
-//	by Nikita Miropolskiy
-
-/* discontinuous pseudorandom uniformly distributed in [0.0, +1.0]^3 */
-Vector3D random3(Vector3D c) {
-	Real j = 4096.0*sin(dot(c,Vector3D(17.0, 59.4, 15.0)));
-	Real x,y,z;
-	z = fract(512.0*j);
-	j *= .125;
-	x = fract(512.0*j);
-	j *= .125;
-	y = fract(512.0*j);
-
-	return Vector3D(x,y,z);
-}
-
-Real hash(const Vector3D& p)
-{
-  Real result = dot(random3(p), Vector3D(52.0,52.0,52.0))/(3*52.0);
-
-//  std::cout << result << std::endl;
-
-  return result;
-}
-
-//inline bool moreThanHalf(const double& v) { return v > 0.5; }
 template<Real (*SHAPE)(const Real&)>
-//template<Real (*SHAPE)(const Real&) = ShapingFunction::linear>
 struct PerlinGrid
 {
   std::mt19937 _prng;
@@ -244,11 +202,6 @@ struct NoiseGeneratorAdaptor : public NoiseGenerator {
   }
 };
 
-
-Real sum(const Real & a, const Real& b) { return a+b; }
-Real prod(const Real & a, const Real& b) { return 1-(1-a)*(1-b); }
-Real turbulence(const Real & n) { return 2*abs(n-0.5); }
-
 class ColorFunc
 {
 public:
@@ -257,7 +210,7 @@ public:
   static std::unique_ptr<ColorFunc> make(int interpolation, int shape, int seed, Real scale, int width);
 };
 
-template<Real (*REDUCER)(const Real&, const Real&) = sum, Real (*MAPPER)(const Real&) = ShapingFunction<Real>::linear>
+template<Real (*SHAPER)(const Real&) = ShapingFunction<Real>::linear>
 struct ColorFuncAdaptor : public ColorFunc {
   unique_ptr<NoiseGenerator>  _generator;
 
@@ -274,8 +227,8 @@ struct ColorFuncAdaptor : public ColorFunc {
     Real m = 0.0;
 
     for (int i = 0; i < iterations; ++i) {
-      v = REDUCER(v,a*MAPPER(_generator->noise(p[0], p[1], time)));
-      m = REDUCER(m,a);
+      v += a*SHAPER(_generator->noise(p[0], p[1], time));
+      m += a;
 
       a = a*gain;
       p = p.rotate(angle)*lacunarity + shift;
@@ -314,11 +267,11 @@ std::unique_ptr<ColorFunc> ColorFunc::make(int interpolation, int shape, int see
   ColorFunc *cf;
   switch (shape) {
     case PerlinNoise::SHAPE_ABS:
-      cf = new ColorFuncAdaptor<sum, ShapingFunction<Real>::abs>(unique_ptr<NoiseGenerator>(ng));
+      cf = new ColorFuncAdaptor<ShapingFunction<Real>::abs>(unique_ptr<NoiseGenerator>(ng));
       break;
     default:
     case PerlinNoise::SHAPE_LINEAR:
-      cf = new ColorFuncAdaptor<sum, ShapingFunction<Real>::linear>(unique_ptr<NoiseGenerator>(ng));
+      cf = new ColorFuncAdaptor<ShapingFunction<Real>::linear>(unique_ptr<NoiseGenerator>(ng));
       break;
   }
 
@@ -364,12 +317,9 @@ PerlinNoise::set_param(const String & param, const ValueBase &value)
 	IMPORT_VALUE(param_shape);
 	IMPORT_VALUE(param_time);
 
-	IMPORT_VALUE(param_displacement);
 	IMPORT_VALUE(param_size);
 	IMPORT_VALUE(param_scale);
 	IMPORT_VALUE(param_seed);
-	IMPORT_VALUE(param_smooth);
-	IMPORT_VALUE(param_turbulent);
 	if(param=="seed")
 		return set_param("random", value);
 	return Layer_Composite::set_param(param,value);
@@ -386,12 +336,9 @@ PerlinNoise::get_param(const String & param)const
 	EXPORT_VALUE(param_shape);
 	EXPORT_VALUE(param_time);
 
-	EXPORT_VALUE(param_displacement);
 	EXPORT_VALUE(param_size);
 	EXPORT_VALUE(param_scale);
 	EXPORT_VALUE(param_seed);
-	EXPORT_VALUE(param_smooth);
-	EXPORT_VALUE(param_turbulent);
 
 	if(param=="seed")
 		return get_param("random");
@@ -464,26 +411,6 @@ PerlinNoise::get_param_vocab()const
 	ret.push_back(ParamDesc("seed")
 		.set_local_name(_("Random Noise Seed"))
 		.set_description(_("Change to modify the random seed of the noise"))
-	);
-
-	ret.push_back(ParamDesc("displacement")
-		.set_local_name(_("Displacement"))
-		.set_description(_("How big the distortion displaces the context"))
-	);
-
-	ret.push_back(ParamDesc("smooth")
-		.set_local_name(_("Interpolation"))
-		.set_description(_("What type of interpolation to use"))
-		.set_hint("enum")
-		.add_enum_value(RandomNoise::SMOOTH_DEFAULT,	"nearest",	_("Nearest Neighbor"))
-		.add_enum_value(RandomNoise::SMOOTH_LINEAR,	"linear",	_("Linear"))
-		.add_enum_value(RandomNoise::SMOOTH_COSINE,	"cosine",	_("Cosine"))
-		.add_enum_value(RandomNoise::SMOOTH_SPLINE,	"spline",	_("Spline"))
-		.add_enum_value(RandomNoise::SMOOTH_CUBIC,	"cubic",	_("Cubic"))
-	);
-	ret.push_back(ParamDesc("turbulent")
-		.set_local_name(_("Turbulent"))
-		.set_description(_("When checked produces turbulent noise"))
 	);
 
 	return ret;

@@ -14,8 +14,6 @@ TESTS=gtest
 
 gtest_SOURCES= \
   bone.cpp \
-  real.cpp \
-  vector.cpp \
   math.cpp \
   gtest.cpp
 gtest_LDADD = libgtest.la

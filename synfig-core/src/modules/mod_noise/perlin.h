@@ -69,13 +69,6 @@ private:
 	//!Parameter: (int)
 	synfig::ValueBase param_seed;
 
-	//!Parameter: (synfig::Vector)
-	synfig::ValueBase param_displacement;
-	//!Parameter: (RandomNoise::SmoothType)
-	synfig::ValueBase param_smooth;
-	//!Parameter: (int)
-	synfig::ValueBase param_turbulent;
-
 	//void sync();
 	mutable synfig::Time curr_time;
 
