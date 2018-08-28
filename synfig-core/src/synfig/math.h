@@ -81,6 +81,11 @@ struct ShapingFunction {
     return D::Min + 2*fabs(v - (D::Max+D::Min)/2);
   }
 
+  static T ridge(const T& v) {
+    const T x = 0.9 - 2*fabs(v - (D::Max+D::Min)/2);
+
+    return D::Min + (D::Max - D::Min) * x * x;
+  }
 };
 
 

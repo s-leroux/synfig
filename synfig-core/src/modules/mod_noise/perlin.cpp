@@ -269,6 +269,9 @@ std::unique_ptr<ColorFunc> ColorFunc::make(int interpolation, int shape, int see
     case PerlinNoise::SHAPE_ABS:
       cf = new ColorFuncAdaptor<ShapingFunction<Real>::abs>(unique_ptr<NoiseGenerator>(ng));
       break;
+    case PerlinNoise::SHAPE_RIDGE:
+      cf = new ColorFuncAdaptor<ShapingFunction<Real>::ridge>(unique_ptr<NoiseGenerator>(ng));
+      break;
     default:
     case PerlinNoise::SHAPE_LINEAR:
       cf = new ColorFuncAdaptor<ShapingFunction<Real>::linear>(unique_ptr<NoiseGenerator>(ng));
@@ -391,6 +394,7 @@ PerlinNoise::get_param_vocab()const
 		.set_hint("enum")
 		.add_enum_value(SHAPE_LINEAR,	"linear",	_("Linear"))
 		.add_enum_value(SHAPE_ABS,	"abs",	_("Abs"))
+		.add_enum_value(SHAPE_RIDGE,	"ridge",	_("Ridge"))
 	);
 
 	ret.push_back(ParamDesc("time")
