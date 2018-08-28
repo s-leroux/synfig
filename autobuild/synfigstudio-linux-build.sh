@@ -46,6 +46,9 @@
 # - debuginfo packages
 
 RELEASE=8
+if [ -z "$INSTALL" ]; then
+INSTALL="/usr/bin/install -p"
+fi
 if [ -z "$PREFIX" ]; then
 PREFIX=$HOME/synfig/
 fi
@@ -486,7 +489,7 @@ if [[ $MODE != 'quick' ]]; then
 	echo "Going to configure..."
 	rm -f aclocal.m4
 	autoreconf --install --force
-	/bin/sh ./configure --prefix=${PREFIX} --includedir=${PREFIX}/include $DEBUG
+	/bin/sh ./configure INSTALL="${INSTALL}" --prefix=${PREFIX} --includedir=${PREFIX}/include $DEBUG
 fi
 
 make -j$MAKE_THREADS
@@ -518,7 +521,7 @@ if [[ $MODE != 'quick' ]]; then
 		fi
 	fi
 	export CONFIG_SHELL=/bin/bash
-	/bin/bash ./configure --prefix=${PREFIX} \
+	/bin/bash ./configure INSTALL="${INSTALL}" --prefix=${PREFIX} \
 		--includedir=${PREFIX}/include \
 		--disable-static --enable-shared \
 		--with-magickpp \
@@ -564,7 +567,7 @@ fi
 
 if [[ $MODE != 'quick' ]]; then
 	/bin/sh ./bootstrap.sh
-	/bin/sh ./configure --prefix=${PREFIX} --includedir=${PREFIX}/include --disable-static --enable-shared --enable-jack --enable-warnings=max $DEBUG $CONFIGURE_PACKAGE_OPTIONS
+	/bin/sh ./configure INSTALL="${INSTALL}" --prefix=${PREFIX} --includedir=${PREFIX}/include --disable-static --enable-shared --enable-jack --enable-warnings=max $DEBUG $CONFIGURE_PACKAGE_OPTIONS
 fi
 
 make -j$MAKE_THREADS

@@ -14,6 +14,7 @@ TESTS=gtest
 
 gtest_SOURCES= \
   bone.cpp \
+  math.cpp \
   gtest.cpp
 gtest_LDADD = libgtest.la
 gtest_LDFLAGS = -pthread

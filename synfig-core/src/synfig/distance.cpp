@@ -36,6 +36,7 @@
 #include "renddesc.h"
 #include "general.h"
 #include <ctype.h>
+#include <algorithm>
 #endif
 
 /* === U S I N G =========================================================== */

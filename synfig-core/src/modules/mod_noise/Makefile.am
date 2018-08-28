@@ -18,6 +18,8 @@ libmod_noise_la_SOURCES = \
 	distort.h \
 	noise.cpp \
 	noise.h \
+	fractal.cpp \
+	fractal.h \
 	valuenode_random.cpp \
 	valuenode_random.h \
 	main.cpp
