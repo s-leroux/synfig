@@ -67,18 +67,20 @@ SYNFIG_LAYER_SET_CVS_ID(FractalNoise,"$Id$");
 
 struct FractalNoiseParams
 {
-	int interpolation;
- 	Real time;
- 	int size;
- 	Real scale;
- 	int seed;
+	const int interpolation;
+ 	const Real time;
+ 	const int size;
+ 	const Real scale;
+ 	const int seed;
 
- 	int iterations;
- 	int shape;
+ 	const int iterations;
+ 	const int shape;
+ 	const Real nsscale;
+ 	const Real nsoffset;
 
- 	Angle angle;
- 	Real gain;
- 	Real lacunarity;
+ 	const Angle angle;
+ 	const Real gain;
+ 	const Real lacunarity;
 
 FractalNoiseParams(const FractalNoise& layer)
   : interpolation(layer.param_interpolation.get(int())),
@@ -89,6 +91,8 @@ FractalNoiseParams(const FractalNoise& layer)
 
    	iterations(layer.param_iterations.get(int())),
    	shape(layer.param_shape.get(int())),
+   	nsscale(layer.param_nsscale.get(Real())),
+   	nsoffset(layer.param_nsoffset.get(Real())),
 
    	angle(layer.param_rotation.get(Angle())),
    	gain(layer.param_gain.get(Real())),
@@ -105,6 +109,8 @@ FractalNoise::FractalNoise():
 	param_gain(ValueBase(Real(0.5))),
 	param_lacunarity(ValueBase(Real(2.0))),
 	param_shape(ValueBase(int(SHAPE_LINEAR))),
+	param_nsscale(ValueBase(Real(1.0))),
+	param_nsoffset(ValueBase(Real(0.0))),
 	param_time(ValueBase(Real(0))),
 	param_size(ValueBase(int(10))),
   param_scale(ValueBase(Real(5.0))),
@@ -261,7 +267,11 @@ struct ColorFuncAdaptor : public ColorFunc {
     Real m = 0.0;
 
     for (int i = 0; i < _params.iterations; ++i) {
-      v += a*SHAPER(_generator->noise(p[0], p[1], time));
+      Real noise = _generator->noise(p[0], p[1], time);
+      noise = noise*_params.nsscale+_params.nsoffset;
+      noise = clamp(noise, -1.0, 1.0);
+
+      v += a*SHAPER(noise);
       m += a;
 
       a = a*_params.gain;
@@ -341,6 +351,8 @@ FractalNoise::set_param(const String & param, const ValueBase &value)
 	IMPORT_VALUE(param_gain);
 	IMPORT_VALUE(param_lacunarity);
 	IMPORT_VALUE(param_shape);
+	IMPORT_VALUE(param_nsscale);
+	IMPORT_VALUE(param_nsoffset);
 	IMPORT_VALUE(param_time);
 
 	IMPORT_VALUE(param_size);
@@ -360,6 +372,8 @@ FractalNoise::get_param(const String & param)const
 	EXPORT_VALUE(param_gain);
 	EXPORT_VALUE(param_lacunarity);
 	EXPORT_VALUE(param_shape);
+	EXPORT_VALUE(param_nsscale);
+	EXPORT_VALUE(param_nsoffset);
 	EXPORT_VALUE(param_time);
 
 	EXPORT_VALUE(param_size);
@@ -411,13 +425,23 @@ FractalNoise::get_param_vocab()const
 	);
 
 	ret.push_back(ParamDesc("shape")
-		.set_local_name(_("Shape"))
-		.set_description(_("Noise shaping function"))
+		.set_local_name(_("Noise shape"))
+		.set_description(_("Noise shape function"))
 		.set_hint("enum")
 		.add_enum_value(SHAPE_LINEAR,	"linear",	_("Linear"))
 		.add_enum_value(SHAPE_ABS,	"abs",	_("Abs"))
 		.add_enum_value(SHAPE_RIDGE,	"ridge",	_("Ridge"))
 		.add_enum_value(SHAPE_PULSE,	"pulse",	_("Pulse"))
+	);
+
+	ret.push_back(ParamDesc("nsscale")
+		.set_local_name(_("Noise shape scale"))
+		.set_description(_("Noise scale factor before passing it to the shape function"))
+	);
+
+	ret.push_back(ParamDesc("nsoffset")
+		.set_local_name(_("Noise shape offset"))
+		.set_description(_("Noise offset before passing it to the shape function"))
 	);
 
 	ret.push_back(ParamDesc("time")

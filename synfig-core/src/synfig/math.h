@@ -32,6 +32,24 @@
 namespace synfig {
 
 template<typename T>
+T clamp(const T& x, const T& minVal, const T& maxVal)
+{
+  return min(max(x, minVal), maxVal);
+}
+
+template<typename T>
+T min(const T& x, T& maxVal)
+{
+  return ( x > maxVal) ? maxVal : x;
+}
+
+template<typename T>
+T max(const T& x, const T& minVal)
+{
+  return ( x < minVal) ? minVal : x;
+}
+
+template<typename T>
 struct Domain
 {
   static constexpr const T Min = 0;

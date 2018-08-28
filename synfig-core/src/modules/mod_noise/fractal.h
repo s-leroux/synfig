@@ -63,6 +63,10 @@ private:
 	//!Parameter: (int)
 	synfig::ValueBase param_shape;
 	//!Parameter: (synfig::Real)
+	synfig::ValueBase param_nsscale;
+	//!Parameter: (synfig::Real)
+	synfig::ValueBase param_nsoffset;
+	//!Parameter: (synfig::Real)
 	synfig::ValueBase param_time;
 	//!Parameter: (int)
 	synfig::ValueBase param_size;
