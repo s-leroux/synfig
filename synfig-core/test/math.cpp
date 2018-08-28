@@ -91,21 +91,25 @@ struct D {
 
 TEST(ShapingFunction, Abs)
 {
-  EXPECT_NEAR(ShapingFunction<double>::abs(0.0), 1.0, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::abs(0.5), 0.0, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::abs(1.0), 1.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::abs(0.0), 0.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::abs(0.5), 1.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::abs(1.0), 0.0, epsilon);
 
 
-  EXPECT_NEAR((ShapingFunction<double, D>::abs(3.0)), D::Max, epsilon);
-  EXPECT_NEAR((ShapingFunction<double, D>::abs(4.0)), D::Min, epsilon);
-  EXPECT_NEAR((ShapingFunction<double, D>::abs(5.0)), D::Max, epsilon);
+  EXPECT_NEAR((ShapingFunction<double, D>::abs(3.0)), D::Min, epsilon);
+  EXPECT_NEAR((ShapingFunction<double, D>::abs(4.0)), D::Max, epsilon);
+  EXPECT_NEAR((ShapingFunction<double, D>::abs(5.0)), D::Min, epsilon);
 }
 
 TEST(ShapingFunction, Pulse)
 {
-  EXPECT_NEAR(ShapingFunction<double>::abs(0.0), 1.0, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::abs(0.5), 0.0, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::abs(1.0), 1.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::pulse(0.0), 0.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::pulse(0.5), 1.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::pulse(1.0), 0.0, epsilon);
+
+  EXPECT_NEAR((ShapingFunction<double, D>::pulse(3.0)), D::Min, epsilon);
+  EXPECT_NEAR((ShapingFunction<double, D>::pulse(4.0)), D::Max, epsilon);
+  EXPECT_NEAR((ShapingFunction<double, D>::pulse(5.0)), D::Min, epsilon);
 }
 
 TEST(ShapingFunction, Parabola)

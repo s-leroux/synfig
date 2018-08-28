@@ -78,7 +78,7 @@ struct ShapingFunction {
   }
 
   static T abs(const T& v) {
-    return D::Min + 2*fabs(v - (D::Max+D::Min)/2);
+    return D::Max - 2*fabs(v - (D::Max+D::Min)/2);
   }
 
   static T ridge(const T& v) {
@@ -88,9 +88,9 @@ struct ShapingFunction {
   }
 
   static T pulse(const T& v) {
-    const T x = 8*fabs(v - (D::Max+D::Min)/2);
+    const T x = D::Max - 8*fabs(v - (D::Max+D::Min)/2);
 
-    return (x >= D::Max) ? D::Max : smoothstep(x);
+    return (x <= D::Min) ? D::Min : smoothstep(x);
   }
 };
 
