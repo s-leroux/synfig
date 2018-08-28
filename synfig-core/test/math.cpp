@@ -101,6 +101,13 @@ TEST(ShapingFunction, Abs)
   EXPECT_NEAR((ShapingFunction<double, D>::abs(5.0)), D::Max, epsilon);
 }
 
+TEST(ShapingFunction, Pulse)
+{
+  EXPECT_NEAR(ShapingFunction<double>::abs(0.0), 1.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::abs(0.5), 0.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::abs(1.0), 1.0, epsilon);
+}
+
 TEST(ShapingFunction, Parabola)
 {
   EXPECT_NEAR(ShapingFunction<double>::parabola(0.0), 0.0, epsilon);

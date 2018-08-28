@@ -89,6 +89,7 @@ public:
     SHAPE_LINEAR                    = 0,
     SHAPE_ABS                       = 1,
     SHAPE_RIDGE                     = 2,
+    SHAPE_PULSE                     = 3,
   };
 
 

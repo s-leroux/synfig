@@ -86,6 +86,12 @@ struct ShapingFunction {
 
     return D::Min + (D::Max - D::Min) * x * x;
   }
+
+  static T pulse(const T& v) {
+    const T x = 8*fabs(v - (D::Max+D::Min)/2);
+
+    return (x >= D::Max) ? D::Max : smoothstep(x);
+  }
 };
 
 
