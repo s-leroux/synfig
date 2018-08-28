@@ -48,6 +48,8 @@ class FractalNoise : public synfig::Layer_Composite
 	SYNFIG_LAYER_MODULE_EXT
 
 private:
+  friend struct FractalNoiseParams;
+
 	//!Parameter: (int)
 	synfig::ValueBase param_interpolation;
 	//!Parameter: (int)
