@@ -52,69 +52,68 @@ using namespace std;
 const double epsilon = 1e-6;
 TEST(ShapingFunction, Linear)
 {
-  EXPECT_NEAR(ShapingFunction<double>::linear(0.0), 0.0, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::linear(0.5), 0.5, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::linear(-1.0), 0.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::linear(0.0), 0.5, epsilon);
   EXPECT_NEAR(ShapingFunction<double>::linear(1.0), 1.0, epsilon);
 }
 
-TEST(ShapingFunction, Cubic)
+TEST(InterpolationFunction, Linear)
 {
-  EXPECT_NEAR(ShapingFunction<double>::cubic(0.0), 0.0, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::cubic(0.5), 0.5, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::cubic(1.0), 1.0, epsilon);
+  EXPECT_NEAR(InterpolationFunction<double>::linear(0.0), 0.0, epsilon);
+  EXPECT_NEAR(InterpolationFunction<double>::linear(0.5), 0.5, epsilon);
+  EXPECT_NEAR(InterpolationFunction<double>::linear(1.0), 1.0, epsilon);
 }
 
-TEST(ShapingFunction, Atan)
+TEST(InterpolationFunction, Atan)
 {
-  EXPECT_NEAR(ShapingFunction<double>::atan(0.0), 0.0, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::atan(0.5), 0.5, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::atan(1.0), 1.0, epsilon);
+  EXPECT_NEAR(InterpolationFunction<double>::atan(0.0), 0.0, epsilon);
+  EXPECT_NEAR(InterpolationFunction<double>::atan(0.5), 0.5, epsilon);
+  EXPECT_NEAR(InterpolationFunction<double>::atan(1.0), 1.0, epsilon);
+}
+
+TEST(InterpolationFunction, Step)
+{
+  EXPECT_NEAR(InterpolationFunction<double>::step(0.0), 0.0, epsilon);
+  EXPECT_NEAR(InterpolationFunction<double>::step(1.0), 1.0, epsilon);
 }
 
 TEST(ShapingFunction, Step)
 {
-  EXPECT_NEAR(ShapingFunction<double>::step(0.0), 0.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::step(-1.0), 0.0, epsilon);
   EXPECT_NEAR(ShapingFunction<double>::step(1.0), 1.0, epsilon);
+}
+
+TEST(InterpolationFunction, Smoothstep)
+{
+  EXPECT_NEAR(InterpolationFunction<double>::smoothstep(0.0), 0.0, epsilon);
+  EXPECT_NEAR(InterpolationFunction<double>::smoothstep(0.5), 0.5, epsilon);
+  EXPECT_NEAR(InterpolationFunction<double>::smoothstep(1.0), 1.0, epsilon);
 }
 
 TEST(ShapingFunction, Smoothstep)
 {
-  EXPECT_NEAR(ShapingFunction<double>::smoothstep(0.0), 0.0, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::smoothstep(0.5), 0.5, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::smoothstep(-1.0), 0.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::smoothstep(0.0), 0.5, epsilon);
   EXPECT_NEAR(ShapingFunction<double>::smoothstep(1.0), 1.0, epsilon);
 }
 
-struct D {
-  static constexpr const double Min = 3.0;
-  static constexpr const double Max = 5.0;
-};
-
 TEST(ShapingFunction, Abs)
 {
-  EXPECT_NEAR(ShapingFunction<double>::abs(0.0), 0.0, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::abs(0.5), 1.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::abs(-1.0), 0.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::abs(0.0), 1.0, epsilon);
   EXPECT_NEAR(ShapingFunction<double>::abs(1.0), 0.0, epsilon);
-
-
-  EXPECT_NEAR((ShapingFunction<double, D>::abs(3.0)), D::Min, epsilon);
-  EXPECT_NEAR((ShapingFunction<double, D>::abs(4.0)), D::Max, epsilon);
-  EXPECT_NEAR((ShapingFunction<double, D>::abs(5.0)), D::Min, epsilon);
 }
 
 TEST(ShapingFunction, Pulse)
 {
-  EXPECT_NEAR(ShapingFunction<double>::pulse(0.0), 0.0, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::pulse(0.5), 1.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::pulse(-1.0), 0.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::pulse(0.0), 1.0, epsilon);
   EXPECT_NEAR(ShapingFunction<double>::pulse(1.0), 0.0, epsilon);
-
-  EXPECT_NEAR((ShapingFunction<double, D>::pulse(3.0)), D::Min, epsilon);
-  EXPECT_NEAR((ShapingFunction<double, D>::pulse(4.0)), D::Max, epsilon);
-  EXPECT_NEAR((ShapingFunction<double, D>::pulse(5.0)), D::Min, epsilon);
 }
 
 TEST(ShapingFunction, Parabola)
 {
-  EXPECT_NEAR(ShapingFunction<double>::parabola(0.0), 0.0, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::parabola(0.5), 0.25, epsilon);
-  EXPECT_NEAR(ShapingFunction<double>::parabola(1.0), 1.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::parabola(-1.0), 0.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::parabola(0.0), 1.0, epsilon);
+  EXPECT_NEAR(ShapingFunction<double>::parabola(1.0), 0.0, epsilon);
 }

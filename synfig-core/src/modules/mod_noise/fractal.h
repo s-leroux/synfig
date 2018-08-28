@@ -78,7 +78,6 @@ public:
 	enum InterpolationType
 	{
 		INTERPOLATION_LINEAR		        = 0,
-		INTERPOLATION_CUBIC		          = 1,
 		INTERPOLATION_STEP		          = 10,
 		INTERPOLATION_SMOOTHSTEP		    = 11,
 		INTERPOLATION_ATAN      		    = 20,

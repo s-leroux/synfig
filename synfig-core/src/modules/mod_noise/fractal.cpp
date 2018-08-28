@@ -110,7 +110,7 @@ struct FractalGrid
       _t[i] = Real(_prng())/RANDMAX;
       for(int j = 0; j < _width; ++j)
       {
-        _v[j*_size2D+i] = Real(_prng())/RANDMAX;
+        _v[j*_size2D+i] = Real(_prng())/(RANDMAX/2.0)-1.0;
       }
     }
   }
@@ -248,20 +248,17 @@ std::unique_ptr<ColorFunc> ColorFunc::make(int interpolation, int shape, int see
 
   switch (interpolation) {
     case FractalNoise::INTERPOLATION_STEP:
-      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::step>(seed, scale, width);
-      break;
-    case FractalNoise::INTERPOLATION_CUBIC:
-      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::cubic>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<InterpolationFunction<Real>::step>(seed, scale, width);
       break;
     case FractalNoise::INTERPOLATION_SMOOTHSTEP:
-      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::smoothstep>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<InterpolationFunction<Real>::smoothstep>(seed, scale, width);
       break;
     case FractalNoise::INTERPOLATION_ATAN:
-      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::atan>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<InterpolationFunction<Real>::atan>(seed, scale, width);
       break;
     case FractalNoise::INTERPOLATION_LINEAR:
     default:
-      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::linear>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<InterpolationFunction<Real>::linear>(seed, scale, width);
   }
 
   ColorFunc *cf;
@@ -365,7 +362,6 @@ FractalNoise::get_param_vocab()const
 		.set_description(_("What type of interpolation to use"))
 		.set_hint("enum")
 		.add_enum_value(INTERPOLATION_LINEAR,	"linear",	_("Linear"))
-		.add_enum_value(INTERPOLATION_CUBIC,	"cubic",	_("Cubic"))
 		.add_enum_value(INTERPOLATION_STEP,	"step",	_("Step"))
 		.add_enum_value(INTERPOLATION_SMOOTHSTEP,	"smoothstep",	_("Smooth Step"))
 		.add_enum_value(INTERPOLATION_ATAN,	"atan",	_("Arctangent"))
