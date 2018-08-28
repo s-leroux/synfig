@@ -1,6 +1,6 @@
 /* === S Y N F I G ========================================================= */
-/*!	\file perlin.h
-**	\brief Header file for implementation of the "Perlin Noise" layer
+/*!	\file fractal.h
+**	\brief Header file for implementation of the "Fractal Noise" layer
 **
 **	$Id$
 **
@@ -41,9 +41,9 @@
 
 /* === C L A S S E S & S T R U C T S ======================================= */
 template<synfig::Real (*SHAPE)(const synfig::Real&)>
-struct PerlinGrid;
+struct FractalGrid;
 
-class PerlinNoise : public synfig::Layer_Composite
+class FractalNoise : public synfig::Layer_Composite
 {
 	SYNFIG_LAYER_MODULE_EXT
 
@@ -73,7 +73,7 @@ private:
 	mutable synfig::Time curr_time;
 
 public:
-	PerlinNoise();
+	FractalNoise();
 
 	enum InterpolationType
 	{
@@ -103,7 +103,7 @@ public:
 	synfig::Layer::Handle hit_check(synfig::Context context, const synfig::Point &point)const;
 
 	virtual bool reads_context()const { return true; }
-}; // EOF of class PerlinNoise
+}; // EOF of class FractalNoise
 
 /* === E N D =============================================================== */
 

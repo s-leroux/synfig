@@ -42,7 +42,7 @@
 
 #include "noise.h"
 #include "distort.h"
-#include "perlin.h"
+#include "fractal.h"
 #include "random_noise.h"
 #include "valuenode_random.h"
 
@@ -62,7 +62,7 @@ MODULE_INVENTORY_BEGIN(libmod_noise)
 	BEGIN_LAYERS
 		LAYER(Noise)
 		LAYER(NoiseDistort)
-		LAYER(PerlinNoise)
+		LAYER(FractalNoise)
 	END_LAYERS
 
 	BEGIN_VALUENODES

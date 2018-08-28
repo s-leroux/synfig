@@ -1,6 +1,6 @@
 /* === S Y N F I G ========================================================= */
-/*!	\file perlin.cpp
-**	\brief Implementation of the "Perlin Noise" layer
+/*!	\file fractal.cpp
+**	\brief Implementation of the "Fractal Noise" layer
 **
 **	$Id$
 **
@@ -29,7 +29,7 @@
 #	include <config.h>
 #endif
 
-#include "perlin.h"
+#include "fractal.h"
 
 #include <synfig/string.h>
 #include <synfig/time.h>
@@ -54,18 +54,18 @@ using namespace etl;
 
 /* === G L O B A L S ======================================================= */
 
-SYNFIG_LAYER_INIT(PerlinNoise);
-SYNFIG_LAYER_SET_NAME(PerlinNoise,"perlin_noise");
-SYNFIG_LAYER_SET_LOCAL_NAME(PerlinNoise,N_("Perlin Noise"));
-SYNFIG_LAYER_SET_CATEGORY(PerlinNoise,N_("Geometry"));
-SYNFIG_LAYER_SET_VERSION(PerlinNoise,"0.0");
-SYNFIG_LAYER_SET_CVS_ID(PerlinNoise,"$Id$");
+SYNFIG_LAYER_INIT(FractalNoise);
+SYNFIG_LAYER_SET_NAME(FractalNoise,"fractal_noise");
+SYNFIG_LAYER_SET_LOCAL_NAME(FractalNoise,N_("Fractal Noise"));
+SYNFIG_LAYER_SET_CATEGORY(FractalNoise,N_("Geometry"));
+SYNFIG_LAYER_SET_VERSION(FractalNoise,"0.0");
+SYNFIG_LAYER_SET_CVS_ID(FractalNoise,"$Id$");
 
 /* === P R O C E D U R E S ================================================= */
 
 /* === M E T H O D S ======================================================= */
 
-PerlinNoise::PerlinNoise():
+FractalNoise::FractalNoise():
 	Layer_Composite(1.0,Color::BLEND_STRAIGHT),
 
 	param_interpolation(ValueBase(int(INTERPOLATION_LINEAR))),
@@ -84,7 +84,7 @@ PerlinNoise::PerlinNoise():
 }
 
 template<Real (*SHAPE)(const Real&)>
-struct PerlinGrid
+struct FractalGrid
 {
   std::mt19937 _prng;
   Real _scale;
@@ -94,7 +94,7 @@ struct PerlinGrid
   Real   *_v; // 3D map in the [0; 1] range
   Real   *_t; // 2D map in the [0; 1] range
 
-  PerlinGrid(int seed, Real scale, int width) :
+  FractalGrid(int seed, Real scale, int width) :
     _prng(seed),
     _scale(scale),
     _width(width),
@@ -115,7 +115,7 @@ struct PerlinGrid
     }
   }
 
-  ~PerlinGrid() { delete[] _v; }
+  ~FractalGrid() { delete[] _v; }
 
   inline Real noise(Real xf, Real yf, Real zf) const {
     xf /= _scale;
@@ -191,7 +191,7 @@ public:
 
 template<Real (*SHAPE)(const Real&)>
 struct NoiseGeneratorAdaptor : public NoiseGenerator {
-  PerlinGrid<SHAPE> _grid;
+  FractalGrid<SHAPE> _grid;
 
   NoiseGeneratorAdaptor(int seed, Real scale, int width)
     : _grid(seed, scale, width) {}
@@ -247,36 +247,36 @@ std::unique_ptr<ColorFunc> ColorFunc::make(int interpolation, int shape, int see
   NoiseGenerator *ng;
 
   switch (interpolation) {
-    case PerlinNoise::INTERPOLATION_STEP:
+    case FractalNoise::INTERPOLATION_STEP:
       ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::step>(seed, scale, width);
       break;
-    case PerlinNoise::INTERPOLATION_CUBIC:
+    case FractalNoise::INTERPOLATION_CUBIC:
       ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::cubic>(seed, scale, width);
       break;
-    case PerlinNoise::INTERPOLATION_SMOOTHSTEP:
+    case FractalNoise::INTERPOLATION_SMOOTHSTEP:
       ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::smoothstep>(seed, scale, width);
       break;
-    case PerlinNoise::INTERPOLATION_ATAN:
+    case FractalNoise::INTERPOLATION_ATAN:
       ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::atan>(seed, scale, width);
       break;
-    case PerlinNoise::INTERPOLATION_LINEAR:
+    case FractalNoise::INTERPOLATION_LINEAR:
     default:
       ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::linear>(seed, scale, width);
   }
 
   ColorFunc *cf;
   switch (shape) {
-    case PerlinNoise::SHAPE_ABS:
+    case FractalNoise::SHAPE_ABS:
       cf = new ColorFuncAdaptor<ShapingFunction<Real>::abs>(unique_ptr<NoiseGenerator>(ng));
       break;
-    case PerlinNoise::SHAPE_RIDGE:
+    case FractalNoise::SHAPE_RIDGE:
       cf = new ColorFuncAdaptor<ShapingFunction<Real>::ridge>(unique_ptr<NoiseGenerator>(ng));
       break;
-    case PerlinNoise::SHAPE_PULSE:
+    case FractalNoise::SHAPE_PULSE:
       cf = new ColorFuncAdaptor<ShapingFunction<Real>::pulse>(unique_ptr<NoiseGenerator>(ng));
       break;
     default:
-    case PerlinNoise::SHAPE_LINEAR:
+    case FractalNoise::SHAPE_LINEAR:
       cf = new ColorFuncAdaptor<ShapingFunction<Real>::linear>(unique_ptr<NoiseGenerator>(ng));
       break;
   }
@@ -286,10 +286,10 @@ std::unique_ptr<ColorFunc> ColorFunc::make(int interpolation, int shape, int see
 
 
 synfig::Layer::Handle
-PerlinNoise::hit_check(synfig::Context context, const synfig::Point &point)const
+FractalNoise::hit_check(synfig::Context context, const synfig::Point &point)const
 {
 	if(get_blend_method()==Color::BLEND_STRAIGHT && get_amount()>=0.5)
-		return const_cast<PerlinNoise*>(this);
+		return const_cast<FractalNoise*>(this);
 	if(get_amount()==0.0)
 		return context.hit_check(point);
 
@@ -308,12 +308,12 @@ PerlinNoise::hit_check(synfig::Context context, const synfig::Point &point)const
 
   auto color = ColorFunc::make(interpolation, shape, seed, scale, size);
 	if(color->get(iterations, gain, lacunarity, angle, point, time, context).get_a()>0.5)
-		return const_cast<PerlinNoise*>(this);
+		return const_cast<FractalNoise*>(this);
 	return synfig::Layer::Handle();
 }
 
 bool
-PerlinNoise::set_param(const String & param, const ValueBase &value)
+FractalNoise::set_param(const String & param, const ValueBase &value)
 {
 	IMPORT_VALUE(param_interpolation);
 	IMPORT_VALUE(param_iterations);
@@ -332,7 +332,7 @@ PerlinNoise::set_param(const String & param, const ValueBase &value)
 }
 
 ValueBase
-PerlinNoise::get_param(const String & param)const
+FractalNoise::get_param(const String & param)const
 {
 	EXPORT_VALUE(param_interpolation);
 	EXPORT_VALUE(param_iterations);
@@ -356,7 +356,7 @@ PerlinNoise::get_param(const String & param)const
 }
 
 Layer::Vocab
-PerlinNoise::get_param_vocab()const
+FractalNoise::get_param_vocab()const
 {
 	Layer::Vocab ret(Layer_Composite::get_param_vocab());
 
@@ -425,7 +425,7 @@ PerlinNoise::get_param_vocab()const
 }
 
 bool
-PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, const RendDesc &renddesc, ProgressCallback *cb)const
+FractalNoise::accelerated_render(Context context,Surface *surface,int quality, const RendDesc &renddesc, ProgressCallback *cb)const
 {
 	RENDER_TRANSFORMED_IF_NEED(__FILE__, __LINE__)
 
@@ -475,7 +475,7 @@ PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, co
 }
 
 Color
-PerlinNoise::get_color(Context context, const Point &point)const
+FractalNoise::get_color(Context context, const Point &point)const
 {
  	int interpolation=param_interpolation.get(int());
 
@@ -502,7 +502,7 @@ PerlinNoise::get_color(Context context, const Point &point)const
 
 /*
 bool
-PerlinNoise::accelerated_render(Context context,Surface *surface,int quality, const RendDesc &renddesc, ProgressCallback *cb)const
+FractalNoise::accelerated_render(Context context,Surface *surface,int quality, const RendDesc &renddesc, ProgressCallback *cb)const
 {
 	RENDER_TRANSFORMED_IF_NEED(__FILE__, __LINE__)
 
