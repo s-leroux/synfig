@@ -65,6 +65,41 @@ SYNFIG_LAYER_SET_CVS_ID(FractalNoise,"$Id$");
 
 /* === M E T H O D S ======================================================= */
 
+struct FractalNoiseParams
+{
+	const int interpolation;
+ 	const Real time;
+ 	const int size;
+ 	const Real scale;
+ 	const int seed;
+
+ 	const int iterations;
+ 	const int shape;
+ 	const Real nsscale;
+ 	const Real nsoffset;
+
+ 	const Angle angle;
+ 	const Real gain;
+ 	const Real lacunarity;
+
+FractalNoiseParams(const FractalNoise& layer)
+  : interpolation(layer.param_interpolation.get(int())),
+   	time(layer.param_time.get(Real())),
+    size(layer.param_size.get(int())),
+   	scale(layer.param_scale.get(Real())),
+   	seed(layer.param_seed.get(int())),
+
+   	iterations(layer.param_iterations.get(int())),
+   	shape(layer.param_shape.get(int())),
+   	nsscale(layer.param_nsscale.get(Real())),
+   	nsoffset(layer.param_nsoffset.get(Real())),
+
+   	angle(layer.param_rotation.get(Angle())),
+   	gain(layer.param_gain.get(Real())),
+   	lacunarity(layer.param_lacunarity.get(Real()))
+{}
+};
+
 FractalNoise::FractalNoise():
 	Layer_Composite(1.0,Color::BLEND_STRAIGHT),
 
@@ -74,6 +109,8 @@ FractalNoise::FractalNoise():
 	param_gain(ValueBase(Real(0.5))),
 	param_lacunarity(ValueBase(Real(2.0))),
 	param_shape(ValueBase(int(SHAPE_LINEAR))),
+	param_nsscale(ValueBase(Real(1.0))),
+	param_nsoffset(ValueBase(Real(0.0))),
 	param_time(ValueBase(Real(0))),
 	param_size(ValueBase(int(10))),
   param_scale(ValueBase(Real(5.0))),
@@ -110,7 +147,7 @@ struct FractalGrid
       _t[i] = Real(_prng())/RANDMAX;
       for(int j = 0; j < _width; ++j)
       {
-        _v[j*_size2D+i] = Real(_prng())/RANDMAX;
+        _v[j*_size2D+i] = Real(_prng())/(RANDMAX/2.0)-1.0;
       }
     }
   }
@@ -193,8 +230,8 @@ template<Real (*SHAPE)(const Real&)>
 struct NoiseGeneratorAdaptor : public NoiseGenerator {
   FractalGrid<SHAPE> _grid;
 
-  NoiseGeneratorAdaptor(int seed, Real scale, int width)
-    : _grid(seed, scale, width) {}
+  NoiseGeneratorAdaptor(const FractalNoiseParams& params)
+    : _grid(params.seed, params.scale, params.size) {}
 
   virtual Real noise(Real x, Real y, Real z) const
   {
@@ -205,34 +242,41 @@ struct NoiseGeneratorAdaptor : public NoiseGenerator {
 class ColorFunc
 {
 public:
-  virtual Color get(int iterations, Real gain, Real lacunarity, const Angle& angle, const Point& point, Real time, Context /*context*/)const = 0;
+  virtual Color get(const Point& point, Context /*context*/)const = 0;
 
-  static std::unique_ptr<ColorFunc> make(int interpolation, int shape, int seed, Real scale, int width);
+  static std::unique_ptr<ColorFunc> make(const FractalNoiseParams& params);
 };
 
 template<Real (*SHAPER)(const Real&) = ShapingFunction<Real>::linear>
 struct ColorFuncAdaptor : public ColorFunc {
+  const FractalNoiseParams& _params;
   unique_ptr<NoiseGenerator>  _generator;
 
-  ColorFuncAdaptor(unique_ptr<NoiseGenerator>&& generator)
-    : _generator(std::move(generator)) {}
+  ColorFuncAdaptor(const FractalNoiseParams& params, unique_ptr<NoiseGenerator>&& generator)
+    : _params(params),
+      _generator(std::move(generator)) {}
 
-  virtual Color get(int iterations, Real gain, Real lacunarity, const Angle& angle, const Point& point, Real time, Context /*context*/)const
+  virtual Color get(const Point& point, Context /*context*/)const
   {
     Vector p(point[0],point[1]);
+    Real time = _params.time;
     Real v = 0.0;
     Real a = 0.5;
     Vector shift(100.0, 100.0);
 
     Real m = 0.0;
 
-    for (int i = 0; i < iterations; ++i) {
-      v += a*SHAPER(_generator->noise(p[0], p[1], time));
+    for (int i = 0; i < _params.iterations; ++i) {
+      Real noise = _generator->noise(p[0], p[1], time);
+      noise = noise*_params.nsscale+_params.nsoffset;
+      noise = clamp(noise, -1.0, 1.0);
+
+      v += a*SHAPER(noise);
       m += a;
 
-      a = a*gain;
-      p = p.rotate(angle)*lacunarity + shift;
-      time = time *lacunarity+100.0;
+      a = a*_params.gain;
+      p = p.rotate(_params.angle)*_params.lacunarity + shift;
+      time = time *_params.lacunarity+100.0;
     }
 
     Color ret = Color::white()*(v/m);
@@ -242,42 +286,39 @@ struct ColorFuncAdaptor : public ColorFunc {
   }
 };
 
-std::unique_ptr<ColorFunc> ColorFunc::make(int interpolation, int shape, int seed, Real scale, int width)
+std::unique_ptr<ColorFunc> ColorFunc::make(const FractalNoiseParams& params)
 {
   NoiseGenerator *ng;
 
-  switch (interpolation) {
+  switch (params.interpolation) {
     case FractalNoise::INTERPOLATION_STEP:
-      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::step>(seed, scale, width);
-      break;
-    case FractalNoise::INTERPOLATION_CUBIC:
-      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::cubic>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<InterpolationFunction<Real>::step>(params);
       break;
     case FractalNoise::INTERPOLATION_SMOOTHSTEP:
-      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::smoothstep>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<InterpolationFunction<Real>::smoothstep>(params);
       break;
     case FractalNoise::INTERPOLATION_ATAN:
-      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::atan>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<InterpolationFunction<Real>::atan>(params);
       break;
     case FractalNoise::INTERPOLATION_LINEAR:
     default:
-      ng = new NoiseGeneratorAdaptor<ShapingFunction<Real>::linear>(seed, scale, width);
+      ng = new NoiseGeneratorAdaptor<InterpolationFunction<Real>::linear>(params);
   }
 
   ColorFunc *cf;
-  switch (shape) {
+  switch (params.shape) {
     case FractalNoise::SHAPE_ABS:
-      cf = new ColorFuncAdaptor<ShapingFunction<Real>::abs>(unique_ptr<NoiseGenerator>(ng));
+      cf = new ColorFuncAdaptor<ShapingFunction<Real>::abs>(params, unique_ptr<NoiseGenerator>(ng));
       break;
     case FractalNoise::SHAPE_RIDGE:
-      cf = new ColorFuncAdaptor<ShapingFunction<Real>::ridge>(unique_ptr<NoiseGenerator>(ng));
+      cf = new ColorFuncAdaptor<ShapingFunction<Real>::ridge>(params, unique_ptr<NoiseGenerator>(ng));
       break;
     case FractalNoise::SHAPE_PULSE:
-      cf = new ColorFuncAdaptor<ShapingFunction<Real>::pulse>(unique_ptr<NoiseGenerator>(ng));
+      cf = new ColorFuncAdaptor<ShapingFunction<Real>::pulse>(params, unique_ptr<NoiseGenerator>(ng));
       break;
     default:
     case FractalNoise::SHAPE_LINEAR:
-      cf = new ColorFuncAdaptor<ShapingFunction<Real>::linear>(unique_ptr<NoiseGenerator>(ng));
+      cf = new ColorFuncAdaptor<ShapingFunction<Real>::linear>(params, unique_ptr<NoiseGenerator>(ng));
       break;
   }
 
@@ -293,21 +334,10 @@ FractalNoise::hit_check(synfig::Context context, const synfig::Point &point)cons
 	if(get_amount()==0.0)
 		return context.hit_check(point);
 
- 	int interpolation=param_interpolation.get(int());
+  FractalNoiseParams params(*this);
 
- 	Real time=param_time.get(Real());
- 	int size=param_size.get(int());
- 	Real scale=param_scale.get(Real());
- 	int seed=param_seed.get(int());
-
- 	int iterations=param_iterations.get(int());
- 	int shape=param_shape.get(int());
- 	Angle angle=param_rotation.get(Angle());
- 	Real gain=param_gain.get(Real());
- 	Real lacunarity=param_lacunarity.get(Real());
-
-  auto color = ColorFunc::make(interpolation, shape, seed, scale, size);
-	if(color->get(iterations, gain, lacunarity, angle, point, time, context).get_a()>0.5)
+  auto color = ColorFunc::make(params);
+	if(color->get(point, context).get_a()>0.5)
 		return const_cast<FractalNoise*>(this);
 	return synfig::Layer::Handle();
 }
@@ -321,6 +351,8 @@ FractalNoise::set_param(const String & param, const ValueBase &value)
 	IMPORT_VALUE(param_gain);
 	IMPORT_VALUE(param_lacunarity);
 	IMPORT_VALUE(param_shape);
+	IMPORT_VALUE(param_nsscale);
+	IMPORT_VALUE(param_nsoffset);
 	IMPORT_VALUE(param_time);
 
 	IMPORT_VALUE(param_size);
@@ -340,6 +372,8 @@ FractalNoise::get_param(const String & param)const
 	EXPORT_VALUE(param_gain);
 	EXPORT_VALUE(param_lacunarity);
 	EXPORT_VALUE(param_shape);
+	EXPORT_VALUE(param_nsscale);
+	EXPORT_VALUE(param_nsoffset);
 	EXPORT_VALUE(param_time);
 
 	EXPORT_VALUE(param_size);
@@ -365,7 +399,6 @@ FractalNoise::get_param_vocab()const
 		.set_description(_("What type of interpolation to use"))
 		.set_hint("enum")
 		.add_enum_value(INTERPOLATION_LINEAR,	"linear",	_("Linear"))
-		.add_enum_value(INTERPOLATION_CUBIC,	"cubic",	_("Cubic"))
 		.add_enum_value(INTERPOLATION_STEP,	"step",	_("Step"))
 		.add_enum_value(INTERPOLATION_SMOOTHSTEP,	"smoothstep",	_("Smooth Step"))
 		.add_enum_value(INTERPOLATION_ATAN,	"atan",	_("Arctangent"))
@@ -392,13 +425,23 @@ FractalNoise::get_param_vocab()const
 	);
 
 	ret.push_back(ParamDesc("shape")
-		.set_local_name(_("Shape"))
-		.set_description(_("Noise shaping function"))
+		.set_local_name(_("Noise shape"))
+		.set_description(_("Noise shape function"))
 		.set_hint("enum")
 		.add_enum_value(SHAPE_LINEAR,	"linear",	_("Linear"))
 		.add_enum_value(SHAPE_ABS,	"abs",	_("Abs"))
 		.add_enum_value(SHAPE_RIDGE,	"ridge",	_("Ridge"))
 		.add_enum_value(SHAPE_PULSE,	"pulse",	_("Pulse"))
+	);
+
+	ret.push_back(ParamDesc("nsscale")
+		.set_local_name(_("Noise shape scale"))
+		.set_description(_("Noise scale factor before passing it to the shape function"))
+	);
+
+	ret.push_back(ParamDesc("nsoffset")
+		.set_local_name(_("Noise shape offset"))
+		.set_description(_("Noise offset before passing it to the shape function"))
 	);
 
 	ret.push_back(ParamDesc("time")
@@ -446,26 +489,13 @@ FractalNoise::accelerated_render(Context context,Surface *surface,int quality, c
 	const int w(surface->get_w());
 	const int h(surface->get_h());
 
- 	int interpolation=param_interpolation.get(int());
+  FractalNoiseParams params(*this);
 
- 	Real time=param_time.get(Real());
- 	int size=param_size.get(int());
- 	Real scale=param_scale.get(Real());
-
- 	int seed=param_seed.get(int());
-
- 	int iterations=param_iterations.get(int());
- 	int shape=param_shape.get(int());
-
- 	Angle angle=param_rotation.get(Angle());
- 	Real gain=param_gain.get(Real());
- 	Real lacunarity=param_lacunarity.get(Real());
-
-  auto color = ColorFunc::make(interpolation, shape, seed, scale, size);
+  auto color = ColorFunc::make(params);
 
 	for(y=0,pos[1]=tl[1];y<h;y++,pen.inc_y(),pen.dec_x(x),pos[1]+=ph)
 		for(x=0,pos[0]=tl[0];x<w;x++,pen.inc_x(),pos[0]+=pw)
-			pen.put_value(color->get(iterations, gain, lacunarity, angle, pos, time, context));
+			pen.put_value(color->get(pos, context));
 
 	// Mark our progress as finished
 	if(cb && !cb->amount_complete(10000,10000))
@@ -477,21 +507,9 @@ FractalNoise::accelerated_render(Context context,Surface *surface,int quality, c
 Color
 FractalNoise::get_color(Context context, const Point &point)const
 {
- 	int interpolation=param_interpolation.get(int());
+  FractalNoiseParams params(*this);
 
- 	Real time=param_time.get(Real());
- 	int size=param_size.get(int());
- 	Real scale=param_scale.get(Real());
- 	int seed=param_seed.get(int());
-
- 	int iterations=param_iterations.get(int());
- 	int shape=param_shape.get(int());
-
- 	Angle angle=param_rotation.get(Angle());
- 	Real gain=param_gain.get(Real());
- 	Real lacunarity=param_lacunarity.get(Real());
-
-  auto color = ColorFunc::make(interpolation, shape, seed, scale, size)->get(iterations, gain, lacunarity, angle, point, time, context);
+  auto color = ColorFunc::make(params)->get(point, context);
 
 	if(get_amount()==1.0 && get_blend_method()==Color::BLEND_STRAIGHT)
 		return color;

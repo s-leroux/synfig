@@ -48,6 +48,8 @@ class FractalNoise : public synfig::Layer_Composite
 	SYNFIG_LAYER_MODULE_EXT
 
 private:
+  friend struct FractalNoiseParams;
+
 	//!Parameter: (int)
 	synfig::ValueBase param_interpolation;
 	//!Parameter: (int)
@@ -60,6 +62,10 @@ private:
 	synfig::ValueBase param_lacunarity;
 	//!Parameter: (int)
 	synfig::ValueBase param_shape;
+	//!Parameter: (synfig::Real)
+	synfig::ValueBase param_nsscale;
+	//!Parameter: (synfig::Real)
+	synfig::ValueBase param_nsoffset;
 	//!Parameter: (synfig::Real)
 	synfig::ValueBase param_time;
 	//!Parameter: (int)
@@ -78,7 +84,6 @@ public:
 	enum InterpolationType
 	{
 		INTERPOLATION_LINEAR		        = 0,
-		INTERPOLATION_CUBIC		          = 1,
 		INTERPOLATION_STEP		          = 10,
 		INTERPOLATION_SMOOTHSTEP		    = 11,
 		INTERPOLATION_ATAN      		    = 20,

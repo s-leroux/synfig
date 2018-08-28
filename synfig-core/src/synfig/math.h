@@ -32,29 +32,36 @@
 namespace synfig {
 
 template<typename T>
+T clamp(const T& x, const T& minVal, const T& maxVal)
+{
+  return min(max(x, minVal), maxVal);
+}
+
+template<typename T>
+T min(const T& x, T& maxVal)
+{
+  return ( x > maxVal) ? maxVal : x;
+}
+
+template<typename T>
+T max(const T& x, const T& minVal)
+{
+  return ( x < minVal) ? minVal : x;
+}
+
+template<typename T>
 struct Domain
 {
   static constexpr const T Min = 0;
   static constexpr const T Max = 1;
 };
 
-template <typename T, typename D = Domain<T>>
-struct Test {
-  static bool higher_half(const T& v) { return (v > (D::Min + D::Max)/2); }
-};
-
 /**
- * ShapingFunction
+ * Interpolation functions
  */
 template <typename T, typename D = Domain<T>>
-struct ShapingFunction {
+struct InterpolationFunction {
   static T linear(const T& v) { return v; }
-
-  static T cubic(const T& v) {
-    const T x = 2*(v - D::Min)/(D::Max-D::Min)-1;
-
-    return D::Min + (D::Max - D::Min) * (x * x * x + 1) / 2;
-  }
 
   static T atan(const T& v) {
     const T x = 2*(v - D::Min)/(D::Max-D::Min)-1;
@@ -62,35 +69,49 @@ struct ShapingFunction {
     return D::Min + (D::Max - D::Min) * (::atan(4 * x)/::atan(4) + 1) / 2;
   }
 
-  template<bool (*Test)(const T& v) = Test<T,D>::higher_half>
-  static T step(const T& v) { return Test(v) ? D::Max : D::Min; }
+  static T step(const T& v) { return (v > (D::Max + D::Min)/2) ? D::Max : D::Min; }
 
   static T smoothstep(const T& v) {
     const T x = (v - D::Min)/(D::Max-D::Min);
 
     return D::Min + (D::Max - D::Min) * x * x * (3.0 - 2.0 * x);
   }
+};
+
+/**
+ * Shaping Function
+ *
+ * Defined for [-1:1] -> [0:1]
+ */
+template <typename T>
+struct ShapingFunction {
+  static T linear(const T& v) { return (1.0+v)/2; }
+
+  static T step(const T& v) { return (v > 0) ? 1.0 : 0.0; }
+
+  static T smoothstep(const T& v) {
+    const T x = (1 + v)/2;
+    return x * x * (3.0 - 2.0 * x);
+  }
 
   static T parabola(const T& v) {
-    const T x = (v - D::Min)/(D::Max-D::Min);
-
-    return D::Min + (D::Max - D::Min) * x * x;
+    return 1.0 - v * v;
   }
 
   static T abs(const T& v) {
-    return D::Min + 2*fabs(v - (D::Max+D::Min)/2);
+    return 1.0 - fabs(v);
   }
 
   static T ridge(const T& v) {
-    const T x = 0.9 - 2*fabs(v - (D::Max+D::Min)/2);
+    const T x = 1.0 - 2*fabs(v);
 
-    return D::Min + (D::Max - D::Min) * x * x;
+    return x * x;
   }
 
   static T pulse(const T& v) {
-    const T x = 8*fabs(v - (D::Max+D::Min)/2);
+    const T x = 1.0 - 8*fabs(v);
 
-    return (x >= D::Max) ? D::Max : smoothstep(x);
+    return (x <= -1.0) ? 0.0 : smoothstep(x);
   }
 };
 
