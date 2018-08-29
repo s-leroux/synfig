@@ -49,6 +49,8 @@ class ChannelMixer : public synfig::Layer_Composite
 private:
   friend class ChannelMixerHelper;
 
+	//! Parameter: (int)
+	ValueBase param_rm;
 	//! Parameter: (Real)
 	ValueBase param_rr;
 	//! Parameter: (Real)
@@ -60,6 +62,8 @@ private:
 	//! Parameter: (Real)
 	ValueBase param_r1;
 
+	//! Parameter: (int)
+	ValueBase param_gm;
 	//! Parameter: (Real)
 	ValueBase param_gr;
 	//! Parameter: (Real)
@@ -71,6 +75,8 @@ private:
 	//! Parameter: (Real)
 	ValueBase param_g1;
 
+	//! Parameter: (int)
+	ValueBase param_bm;
 	//! Parameter: (Real)
 	ValueBase param_br;
 	//! Parameter: (Real)
@@ -82,6 +88,8 @@ private:
 	//! Parameter: (Real)
 	ValueBase param_b1;
 
+	//! Parameter: (int)
+	ValueBase param_am;
 	//! Parameter: (Real)
 	ValueBase param_ar;
 	//! Parameter: (Real)
@@ -92,6 +100,12 @@ private:
 	ValueBase param_aa;
 	//! Parameter: (Real)
 	ValueBase param_a1;
+
+  enum Mode
+  {
+    SUM = 0,
+    AVG = 1,
+  };
 
 public:
 

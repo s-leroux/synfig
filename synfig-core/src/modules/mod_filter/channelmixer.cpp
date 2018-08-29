@@ -67,24 +67,28 @@ namespace synfig
 
 class ChannelMixerHelper
 {
+  const int rm;
   const Real rr;
   const Real rg;
   const Real rb;
   const Real ra;
   const Real r1;
 
+  const int gm;
   const Real gr;
   const Real gg;
   const Real gb;
   const Real ga;
   const Real g1;
 
+  const int bm;
   const Real br;
   const Real bg;
   const Real bb;
   const Real ba;
   const Real b1;
 
+  const int am;
   const Real ar;
   const Real ag;
   const Real ab;
@@ -93,30 +97,51 @@ class ChannelMixerHelper
 
 public:
   ChannelMixerHelper(const ChannelMixer& layer)
-    : rr(layer.param_rr.get(Real())),
+    : rm(layer.param_rm.get(int())),
+      rr(layer.param_rr.get(Real())),
       rg(layer.param_rg.get(Real())),
       rb(layer.param_rb.get(Real())),
       ra(layer.param_ra.get(Real())),
       r1(layer.param_r1.get(Real())),
 
+      gm(layer.param_gm.get(int())),
       gr(layer.param_gr.get(Real())),
       gg(layer.param_gg.get(Real())),
       gb(layer.param_gb.get(Real())),
       ga(layer.param_ga.get(Real())),
       g1(layer.param_g1.get(Real())),
 
+      bm(layer.param_bm.get(int())),
       br(layer.param_br.get(Real())),
       bg(layer.param_bg.get(Real())),
       bb(layer.param_bb.get(Real())),
       ba(layer.param_ba.get(Real())),
       b1(layer.param_b1.get(Real())),
 
+      am(layer.param_am.get(int())),
       ar(layer.param_ar.get(Real())),
       ag(layer.param_ag.get(Real())),
       ab(layer.param_ab.get(Real())),
       aa(layer.param_aa.get(Real())),
       a1(layer.param_a1.get(Real()))
   {}
+
+  inline Real combine(int mode, Real a1, Real v1,
+                                Real a2, Real v2,
+                                Real a3, Real v3,
+                                Real a4, Real v4,
+                                Real a5, Real v5) const
+  {
+    switch(mode)
+    {
+      case ChannelMixer::SUM:
+        return a1*v1+a2*v2+a3*v3+a4*v4+a5*v5;
+      case ChannelMixer::AVG:
+        return (a1*a1*v1 + a2*a2*v2 + a3*a3*v3 + a4*a4*v4 + a5*a5*v5)/(a1+a2+a3+a4+a5);
+      default:
+        return 0.0;
+    };
+  }
 
   inline Color mix(const Color &in) const
   {
@@ -126,10 +151,10 @@ public:
     Real a = in.get_a();
 
     return Color(
-      r*rr + g*rg + b*rb + a*ra + 1.0*r1,
-      r*gr + g*gg + b*gb + a*ga + 1.0*g1,
-      r*br + g*bg + b*bb + a*ba + 1.0*b1,
-      r*ar + g*ag + b*ab + a*aa + 1.0*a1
+      combine(rm, rr, r, rg, g, rb, b, ra, a, r1, 1.0),
+      combine(gm, gr, r, gg, g, gb, b, ga, a, g1, 1.0),
+      combine(bm, br, r, bg, g, bb, b, ba, a, b1, 1.0),
+      combine(am, ar, r, ag, g, ab, b, aa, a, a1, 1.0)
     );
   }
 };
@@ -137,26 +162,30 @@ public:
 }; // namespace synfig
 
 ChannelMixer::ChannelMixer():
-	Layer_Composite(1.0,Color::BLEND_STRAIGHT),
+	Layer_Composite(1.0,Color::BLEND_COMPOSITE),
 
+	param_rm(ValueBase(int(SUM))),
 	param_rr(ValueBase(Real(1.0))),
 	param_rg(ValueBase(Real(0.0))),
 	param_rb(ValueBase(Real(0.0))),
 	param_ra(ValueBase(Real(0.0))),
 	param_r1(ValueBase(Real(0.0))),
 
+	param_gm(ValueBase(int(SUM))),
 	param_gr(ValueBase(Real(0.0))),
 	param_gg(ValueBase(Real(1.0))),
 	param_gb(ValueBase(Real(0.0))),
 	param_ga(ValueBase(Real(0.0))),
 	param_g1(ValueBase(Real(0.0))),
 
+	param_bm(ValueBase(int(SUM))),
 	param_br(ValueBase(Real(0.0))),
 	param_bg(ValueBase(Real(0.0))),
 	param_bb(ValueBase(Real(1.0))),
 	param_ba(ValueBase(Real(0.0))),
 	param_b1(ValueBase(Real(0.0))),
 
+	param_am(ValueBase(int(SUM))),
 	param_ar(ValueBase(Real(0.0))),
 	param_ag(ValueBase(Real(0.0))),
 	param_ab(ValueBase(Real(0.0))),
@@ -170,24 +199,28 @@ ChannelMixer::ChannelMixer():
 bool
 ChannelMixer::set_param(const String & param, const ValueBase &value)
 {
+	IMPORT_VALUE(param_rm);
 	IMPORT_VALUE(param_rr);
 	IMPORT_VALUE(param_rg);
 	IMPORT_VALUE(param_rb);
 	IMPORT_VALUE(param_ra);
 	IMPORT_VALUE(param_r1);
 
-	IMPORT_VALUE(param_gr);
+	IMPORT_VALUE(param_gm);
 	IMPORT_VALUE(param_gg);
+  IMPORT_VALUE(param_gr);
 	IMPORT_VALUE(param_gb);
 	IMPORT_VALUE(param_ga);
 	IMPORT_VALUE(param_g1);
 
+	IMPORT_VALUE(param_bm);
 	IMPORT_VALUE(param_br);
 	IMPORT_VALUE(param_bg);
 	IMPORT_VALUE(param_bb);
 	IMPORT_VALUE(param_ba);
 	IMPORT_VALUE(param_b1);
 
+	IMPORT_VALUE(param_am);
 	IMPORT_VALUE(param_ar);
 	IMPORT_VALUE(param_ag);
 	IMPORT_VALUE(param_ab);
@@ -200,24 +233,28 @@ ChannelMixer::set_param(const String & param, const ValueBase &value)
 ValueBase
 ChannelMixer::get_param(const String &param)const
 {
+	EXPORT_VALUE(param_rm);
 	EXPORT_VALUE(param_rr);
 	EXPORT_VALUE(param_rg);
 	EXPORT_VALUE(param_rb);
 	EXPORT_VALUE(param_ra);
 	EXPORT_VALUE(param_r1);
 
+	EXPORT_VALUE(param_gm);
 	EXPORT_VALUE(param_gr);
 	EXPORT_VALUE(param_gg);
 	EXPORT_VALUE(param_gb);
 	EXPORT_VALUE(param_ga);
 	EXPORT_VALUE(param_g1);
 
+	EXPORT_VALUE(param_bm);
 	EXPORT_VALUE(param_br);
 	EXPORT_VALUE(param_bg);
 	EXPORT_VALUE(param_bb);
 	EXPORT_VALUE(param_ba);
 	EXPORT_VALUE(param_b1);
 
+	EXPORT_VALUE(param_am);
 	EXPORT_VALUE(param_ar);
 	EXPORT_VALUE(param_ag);
 	EXPORT_VALUE(param_ab);
@@ -234,6 +271,14 @@ Layer::Vocab
 ChannelMixer::get_param_vocab()const
 {
 	Layer::Vocab ret(Layer_Composite::get_param_vocab());
+
+	ret.push_back(ParamDesc("rm")
+		.set_local_name(_("Red method"))
+		.set_description(_("How individual components are mixed in the output Red channel"))
+		.set_hint("enum")
+		.add_enum_value(SUM,	"sum",	_("Sum"))
+		.add_enum_value(AVG,	"avg",	_("Average"))
+	);
 
 	ret.push_back(ParamDesc("rr")
 		.set_local_name(_("Red <- Red"))
@@ -258,6 +303,14 @@ ChannelMixer::get_param_vocab()const
 	ret.push_back(ParamDesc("r1")
 		.set_local_name(_("Red <- 1.0"))
 		.set_description(_("Extra amount of Red in the output"))
+	);
+
+	ret.push_back(ParamDesc("gm")
+		.set_local_name(_("Green method"))
+		.set_description(_("How individual components are mixed in the output Green channel"))
+		.set_hint("enum")
+		.add_enum_value(SUM,	"sum",	_("Sum"))
+		.add_enum_value(AVG,	"avg",	_("Average"))
 	);
 
 	ret.push_back(ParamDesc("gr")
@@ -285,6 +338,14 @@ ChannelMixer::get_param_vocab()const
 		.set_description(_("Extra amount of Green in the output"))
 	);
 
+	ret.push_back(ParamDesc("bm")
+		.set_local_name(_("Blue method"))
+		.set_description(_("How individual components are mixed in the output Blue channel"))
+		.set_hint("enum")
+		.add_enum_value(SUM,	"sum",	_("Sum"))
+		.add_enum_value(AVG,	"avg",	_("Average"))
+	);
+
 	ret.push_back(ParamDesc("br")
 		.set_local_name(_("Blue <- Red"))
 		.set_description(_("Amount of input Red channel in output Blue channel"))
@@ -308,6 +369,14 @@ ChannelMixer::get_param_vocab()const
 	ret.push_back(ParamDesc("b1")
 		.set_local_name(_("Blue <- 1.0"))
 		.set_description(_("Extra amount of Blue in the output"))
+	);
+
+	ret.push_back(ParamDesc("am")
+		.set_local_name(_("Alpha method"))
+		.set_description(_("How individual components are mixed in the output Alpha channel"))
+		.set_hint("enum")
+		.add_enum_value(SUM,	"sum",	_("Sum"))
+		.add_enum_value(AVG,	"avg",	_("Average"))
 	);
 
 	ret.push_back(ParamDesc("ar")
