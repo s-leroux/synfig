@@ -15,6 +15,8 @@ module_LTLIBRARIES = libmod_filter.la
 libmod_filter_la_SOURCES = \
 	blur.cpp \
 	blur.h \
+	channelmixer.cpp \
+	channelmixer.h \
 	colorcorrect.cpp \
 	colorcorrect.h \
 	halftone2.cpp \

@@ -43,6 +43,7 @@
 #include "halftone3.h"
 #include "lumakey.h"
 #include "radialblur.h"
+#include "channelmixer.h"
 
 #endif
 
@@ -58,6 +59,7 @@ MODULE_DESC_END
 
 MODULE_INVENTORY_BEGIN(libmod_filter)
 	BEGIN_LAYERS
+		LAYER(ChannelMixer)
 		LAYER(Blur_Layer)
 		LAYER(Halftone2)
 		LAYER(Halftone3)
