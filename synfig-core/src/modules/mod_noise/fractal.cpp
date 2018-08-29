@@ -101,7 +101,7 @@ FractalNoiseParams(const FractalNoise& layer)
 };
 
 FractalNoise::FractalNoise():
-	Layer_Composite(1.0,Color::BLEND_STRAIGHT),
+	Layer_Composite(1.0,Color::BLEND_COMPOSITE),
 
 	param_interpolation(ValueBase(int(INTERPOLATION_LINEAR))),
 	param_iterations(ValueBase(int(2))),
