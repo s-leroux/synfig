@@ -42,7 +42,7 @@ C blendfunc_COMPOSITE(C &src,C &dest,float amount)
 
 	float a_src=src.get_a()*amount;
 	float a_dest=dest.get_a();
-	const float one(C::ceil); 
+	const float one(C::ceil);
 
 	// if a_arc==0.0
 	//if(fabsf(a_src)<COLOR_EPSILON) return dest;
@@ -133,7 +133,7 @@ C blendfunc_DARKEN(C &a,C &b,float amount)
 {
 	const float alpha(a.get_a()*amount);
 	const float one(C::ceil);
-	
+
 	if(b.get_r()>(a.get_r()-one)*alpha+one)
 		b.set_r((a.get_r()-one)*alpha+one);
 
@@ -155,6 +155,33 @@ C blendfunc_ADD(C &a,C &b,float amount)
 	b.set_r(b.get_r()+a.get_r()*alpha);
 	b.set_g(b.get_g()+a.get_g()*alpha);
 	b.set_b(b.get_b()+a.get_b()*alpha);
+
+	return b;
+}
+
+template <class C>
+C blendfunc_ALPHA_ADD(C &a,C &b,float amount)
+{
+  const float src_alpha = a.get_a()*amount;
+  const float dst_alpha = b.get_a();
+	const float alpha = src_alpha + dst_alpha*(1-src_alpha);
+
+  if (alpha < COLOR_EPSILON)
+  {
+	  const float zero(C::floor);
+
+    b.set_r(zero);
+    b.set_r(zero);
+    b.set_r(zero);
+    b.set_a(zero);
+  }
+  else
+  {
+    b.set_r( (a.get_r()*src_alpha + b.get_r()*dst_alpha /* *(1-src_alpha) */) / alpha );
+    b.set_g( (a.get_g()*src_alpha + b.get_g()*dst_alpha /* *(1-src_alpha) */) / alpha );
+    b.set_b( (a.get_b()*src_alpha + b.get_b()*dst_alpha /* *(1-src_alpha) */) / alpha );
+    b.set_a(alpha);
+  }
 
 	return b;
 }
@@ -344,4 +371,3 @@ C blendfunc_ALPHA_OVER(C &a,C &b,float amount)
 
 
 #endif // __SYNFIG_COLOR_COLORBLENDINGFUNCTIONS_H
-

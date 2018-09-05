@@ -33,7 +33,7 @@ namespace synfig {
 class CairoColor;
 
 /*!	\class Color
-**	\ ARGB 128 bits Color class implementation 
+**	\ ARGB 128 bits Color class implementation
 **	Future optimizations: lookup table for sqrt()?
 */
 class Color
@@ -45,10 +45,10 @@ private:
 	value_type a_, r_, g_, b_;
 
 public:
-	
+
 	static const value_type ceil;
 	static const value_type floor;
-	
+
 	const String get_string(void) const;
 
 	inline Color &	operator+= (const Color &rhs);
@@ -96,7 +96,7 @@ public:
 
 	//! Convert from CairoColor to Color
 	inline Color(const CairoColor& c);
-	
+
 #ifdef USE_HALF_TYPE
 	friend class ColorAccumulator;
 	//!	Convert constructor
@@ -279,8 +279,9 @@ public:
 		BLEND_ALPHA_BRIGHTEN=14,	//!< \deprecated If A is less opaque than B, use A
 		BLEND_ALPHA_DARKEN=15,		//!< \deprecated If A is more opaque than B, use B
 		BLEND_ALPHA_OVER=19,		//!< \deprecated multiply alphas and then straight blends using the amount
+		BLEND_ALPHA_ADD=22,		//!< alpha-aware add color
 
-		BLEND_END=22,				//!< \internal
+		BLEND_END=23,				//!< \internal
 		BLEND_BY_LAYER=999			//! Used to let the layer decides what Blend Method use by
 									//! default when the layer is created
 	};
@@ -340,4 +341,3 @@ public:
 #include "color.hpp"
 
 #endif // __SYNFIG_COLOR_COLOR_H
-
