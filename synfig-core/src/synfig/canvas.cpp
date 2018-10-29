@@ -858,9 +858,9 @@ Canvas::clone(const GUID& deriv_guid, bool for_export)const
 		canvas->parent_=parent();
 //		show_canvas_ancestry(__FILE__, __LINE__, "clone(): old");
 //		canvas->show_canvas_ancestry(__FILE__, __LINE__, "clone(): new");
-		canvas->rend_desc() = rend_desc();
 		//canvas->set_inline(parent());
 	}
+	canvas->rend_desc() = rend_desc();
 
 	canvas->set_guid(get_guid()^deriv_guid);
 
