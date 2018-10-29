@@ -74,6 +74,8 @@ private:
 	synfig::ValueBase param_scale;
 	//!Parameter: (int)
 	synfig::ValueBase param_seed;
+	//!Parameter: (bool)
+	synfig::ValueBase param_alpha;
 
 	//void sync();
 	mutable synfig::Time curr_time;

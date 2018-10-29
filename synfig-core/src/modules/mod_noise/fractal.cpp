@@ -72,6 +72,7 @@ struct FractalNoiseParams
  	const int size;
  	const Real scale;
  	const int seed;
+ 	const bool alpha;
 
  	const int iterations;
  	const int shape;
@@ -88,6 +89,7 @@ FractalNoiseParams(const FractalNoise& layer)
     size(layer.param_size.get(int())),
    	scale(layer.param_scale.get(Real())),
    	seed(layer.param_seed.get(int())),
+   	alpha(layer.param_alpha.get(bool())),
 
    	iterations(layer.param_iterations.get(int())),
    	shape(layer.param_shape.get(int())),
@@ -114,7 +116,8 @@ FractalNoise::FractalNoise():
 	param_time(ValueBase(Real(0))),
 	param_size(ValueBase(int(10))),
   param_scale(ValueBase(Real(5.0))),
-	param_seed(ValueBase(int(time(NULL))))
+	param_seed(ValueBase(int(time(NULL)))),
+	param_alpha(ValueBase(true))
 {
 	SET_INTERPOLATION_DEFAULTS();
 	SET_STATIC_DEFAULTS();
@@ -280,7 +283,8 @@ struct ColorFuncAdaptor : public ColorFunc {
     }
 
     Color ret = Color::white()*(v/m);
-    ret.set_alpha(1.0);
+    if (!_params.alpha)
+      ret.set_alpha(1.0);
   //	ret=context.get_color(point_func(point));
     return ret;
   }
@@ -358,6 +362,7 @@ FractalNoise::set_param(const String & param, const ValueBase &value)
 	IMPORT_VALUE(param_size);
 	IMPORT_VALUE(param_scale);
 	IMPORT_VALUE(param_seed);
+	IMPORT_VALUE(param_alpha);
 	if(param=="seed")
 		return set_param("random", value);
 	return Layer_Composite::set_param(param,value);
@@ -379,6 +384,7 @@ FractalNoise::get_param(const String & param)const
 	EXPORT_VALUE(param_size);
 	EXPORT_VALUE(param_scale);
 	EXPORT_VALUE(param_seed);
+	EXPORT_VALUE(param_alpha);
 
 	if(param=="seed")
 		return get_param("random");
@@ -462,6 +468,11 @@ FractalNoise::get_param_vocab()const
 	ret.push_back(ParamDesc("seed")
 		.set_local_name(_("Random Noise Seed"))
 		.set_description(_("Change to modify the random seed of the noise"))
+	);
+
+	ret.push_back(ParamDesc("alpha")
+		.set_local_name(_("Alpha"))
+		.set_description(_("Make transparent noise"))
 	);
 
 	return ret;
