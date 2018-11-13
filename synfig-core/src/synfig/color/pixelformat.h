@@ -108,11 +108,11 @@ inline unsigned char * Color2PixelFormat(const Color &color, const PixelFormat &
     int alpha = 0;
     if (FLAGS(pf, PF_A_INV))
     {
-        alpha = (-(float)color.get_a()+1) * 255;
+        alpha = round((1.0-color.get_a()) * 255.0); // always round to nearest!
     }
     else
     {
-        alpha = (float)color.get_a() * 255;
+        alpha = round(color.get_a() * 255.0);
     }
 
     if(alpha < 0)
@@ -280,4 +280,3 @@ inline const unsigned char * PixelFormat2Color(Color &color,
 } // synfig namespace
 
 #endif // __SYNFIG_COLOR_PIXELFORMAT_H
-
