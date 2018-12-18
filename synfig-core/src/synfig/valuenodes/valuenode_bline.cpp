@@ -345,6 +345,11 @@ synfig::hom_to_std(const ValueBase &bline, Real pos, bool index_loop, bool bline
 	const std::vector<BLinePoint> list(bline.get_list_of(BLinePoint()));
 	int size = list.size(), from_vertex(0);
 	// trivial cases
+	if (pos <= 0.0)
+		return 0.0;
+	if (pos >= 1.0)
+		return 1.0;
+
 	if(pos == 0.0 || pos == 1.0)
 		return pos;
 	if(!bline_loop) size--;
